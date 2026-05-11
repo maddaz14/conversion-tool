@@ -1017,9 +1017,10 @@ footer .dev-credit span { color: var(--primary); }
   header { flex-direction: column; gap: 14px; text-align: center; padding: 20px 0; }
   .hero { padding: 32px 0 24px; }
 
-  .tool-layout { gap: 16px; }
+  .tool-layout { gap: 16px; overflow-x: hidden; }
   .tool-sidebar { padding: 12px; }
-  .tool-content { padding: 18px; min-height: auto; }
+  .tool-content { padding: 18px; min-height: auto; overflow-x: hidden; }
+  .grid { overflow-x: hidden; }
 
   .modal { padding: 26px 20px; }
   .dropzone { padding: 30px 16px; }
