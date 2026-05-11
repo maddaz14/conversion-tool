@@ -1,0 +1,10 @@
+{
+  "name": "file-converter",
+  "version": "1.0.0",
+  "description": "File format converter tool",
+  "scripts": {
+    "dev": "npx serve .",
+    "build": "echo 'Static site, no build needed'",
+    "start": "npx serve ."
+  }
+}
