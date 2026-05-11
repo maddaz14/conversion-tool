@@ -3,473 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gondrong STIES — Alat Konversi File</title>
-  
+  <title>Gondrong STIES — Tools Online Gratis</title>
+  <meta name="description" content="Kumpulan tools online gratis dari Gondrong STIES — konversi file, edit gambar, PDF tools, encoder, generator, dan banyak lagi. 100% privat, semua berjalan di browser." />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-  <style>
-    /* ─── BASE RESET & VARIABLES ─── */
-    *, *::before, *::after { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
-    }
-
-    :root {
-      --bg-dark: #0f172a;
-      --bg-surface: #1e293b;
-      --bg-card: #334155;
-      --border-color: #475569;
-      --primary: #3b82f6;      /* Blue */
-      --secondary: #10b981;    /* Emerald */
-      --accent: #f59e0b;       /* Gold */
-      --danger: #ef4444;       /* Red */
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --font-sans: 'Outfit', sans-serif;
-      --font-mono: 'Fira Code', monospace;
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
-      background-attachment: fixed;
-      color: var(--text-main);
-      font-family: var(--font-sans);
-      min-height: 100vh;
-      line-height: 1.6;
-    }
-
-    /* ─── LAYOUT WRAPPER ─── */
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    /* ─── HEADER ─── */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 32px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      text-decoration: none;
-    }
-
-    .brand-icon {
-      background: linear-gradient(135deg, var(--primary), var(--secondary));
-      color: white;
-      width: 40px; height: 40px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 10px;
-      font-weight: 800;
-      font-size: 1.2rem;
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-    }
-
-    .brand-text {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--text-main);
-    }
-
-    .brand-text span {
-      color: var(--primary);
-    }
-
-    .header-badge {
-      background: rgba(16, 185, 129, 0.1);
-      color: var(--secondary);
-      padding: 6px 14px;
-      border-radius: 99px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
-
-    /* ─── HERO SECTION ─── */
-    .hero {
-      text-align: center;
-      padding: 80px 0 60px;
-      flex-grow: 1;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.5rem, 5vw, 4.5rem);
-      font-weight: 800;
-      line-height: 1.1;
-      margin-bottom: 24px;
-      color: var(--text-main);
-    }
-
-    .hero h1 .highlight {
-      background: linear-gradient(to right, var(--primary), var(--secondary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .hero p {
-      font-size: 1.1rem;
-      color: var(--text-muted);
-      max-width: 600px;
-      margin: 0 auto 48px;
-    }
-
-    /* ─── CATEGORY FILTER ─── */
-    .filter-group {
-      display: flex;
-      gap: 12px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 40px;
-    }
-
-    .filter-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 10px 24px;
-      border-radius: 12px;
-      font-family: var(--font-sans);
-      font-size: 0.95rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .filter-btn:hover {
-      background: var(--bg-card);
-      color: var(--text-main);
-    }
-
-    .filter-btn.active {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-    }
-
-    /* ─── TOOLS GRID ─── */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 80px;
-    }
-
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 20px;
-      padding: 30px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card:hover {
-      transform: translateY(-5px);
-      border-color: var(--primary);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      background: #233044;
-    }
-
-    .card-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-
-    .card h3 {
-      font-size: 1.2rem;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-
-    .card p {
-      font-size: 0.9rem;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      flex-grow: 1;
-    }
-
-    .card-tags {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tag {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-weight: 600;
-    }
-
-    .tag-from { background: rgba(245, 158, 11, 0.1); color: var(--accent); border: 1px solid rgba(245, 158, 11, 0.2); }
-    .tag-to { background: rgba(16, 185, 129, 0.1); color: var(--secondary); border: 1px solid rgba(16, 185, 129, 0.2); }
-    .tag-arrow { color: var(--text-muted); font-size: 0.8rem; }
-
-    .card-action {
-      position: absolute;
-      top: 30px;
-      right: 30px;
-      color: var(--primary);
-      opacity: 0;
-      transform: translateX(-10px);
-      transition: all 0.3s ease;
-      font-weight: bold;
-    }
-
-    .card:hover .card-action {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    /* ─── MODAL RESPONSIVE SCROLLING ─── */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(10px);
-      z-index: 9999;
-      /* Pengaturan ini penting untuk scrolling responsif di HP */
-      overflow-y: auto; 
-      padding: 24px;
-      align-items: flex-start; /* Agar modal panjang bisa discroll */
-    }
-
-    .modal-overlay.open {
-      display: flex;
-      justify-content: center;
-    }
-
-    .modal {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 24px;
-      width: 100%;
-      max-width: 600px;
-      padding: 40px;
-      position: relative;
-      margin: auto; /* Memposisikan di tengah jika ada ruang lebih */
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .btn-close {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .btn-close:hover {
-      background: var(--danger);
-      color: white;
-      border-color: var(--danger);
-      transform: rotate(90deg);
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
-
-    .modal-icon {
-      font-size: 2.5rem;
-    }
-
-    .modal h2 {
-      font-size: 1.8rem;
-      font-weight: 800;
-    }
-
-    .modal-desc {
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      font-size: 0.95rem;
-    }
-
-    /* ─── DROPZONE ─── */
-    .dropzone {
-      background: rgba(15, 23, 42, 0.5);
-      border: 2px dashed var(--border-color);
-      border-radius: 16px;
-      padding: 50px 20px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      margin-bottom: 24px;
-    }
-
-    .dropzone:hover, .dropzone.drag-over {
-      border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.05);
-    }
-
-    .dropzone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
-
-    .drop-icon { font-size: 3rem; margin-bottom: 16px; }
-
-    .dropzone h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--text-main); }
-    .dropzone p { color: var(--text-muted); font-size: 0.85rem; }
-
-    .file-selected {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 16px;
-      border-radius: 12px;
-      display: none;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .file-selected .file-icon { font-size: 1.5rem; }
-    .file-selected .file-name { font-family: var(--font-mono); color: var(--secondary); font-size: 0.9rem; word-break: break-all; }
-
-    /* ─── FORM & CONTROLS ─── */
-    .input-group { margin-bottom: 24px; }
-    .input-group label {
-      display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-
-    select.form-control {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-main);
-      padding: 16px;
-      border-radius: 12px;
-      font-family: var(--font-sans);
-      font-size: 1rem;
-      cursor: pointer;
-      outline: none;
-      appearance: none;
-      transition: all 0.2s;
-    }
-
-    select.form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
-
-    .btn-convert {
-      width: 100%;
-      background: linear-gradient(135deg, var(--primary), #2563eb);
-      color: white;
-      border: none;
-      padding: 18px;
-      border-radius: 12px;
-      font-size: 1.1rem;
-      font-weight: 700;
-      font-family: var(--font-sans);
-      cursor: pointer;
-      transition: all 0.3s;
-      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-    }
-
-    .btn-convert:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
-    }
-
-    .btn-convert:disabled { background: var(--bg-card); color: var(--text-muted); box-shadow: none; cursor: not-allowed; opacity: 0.7; }
-
-    /* ─── PROGRESS & STATUS ─── */
-    .progress-container { display: none; margin-top: 24px; }
-    .progress-bar-bg { background: var(--bg-card); height: 8px; border-radius: 99px; overflow: hidden; margin-bottom: 12px; }
-    .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--secondary)); border-radius: 99px; transition: width 0.3s ease; }
-    .progress-text { text-align: center; font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-muted); }
-
-    .status-alert { display: none; padding: 16px; border-radius: 12px; margin-top: 24px; font-size: 0.95rem; font-weight: 500; align-items: center; gap: 12px; }
-    .status-alert.success { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: var(--secondary); }
-    .status-alert.error { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); }
-
-    /* ─── FOOTER ─── */
-    footer {
-      border-top: 1px solid var(--border-color);
-      padding: 40px 0;
-      text-align: center;
-      margin-top: auto;
-    }
-
-    footer p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    footer .dev-credit {
-      margin-top: 12px;
-      font-weight: 600;
-      font-size: 1rem;
-      color: var(--text-main);
-    }
-    
-    footer .dev-credit span {
-      color: var(--primary);
-    }
-
-    /* ─── RESPONSIVE RULES ─── */
-    @media (max-width: 768px) {
-      header { flex-direction: column; gap: 16px; text-align: center; padding: 24px 0; }
-      .hero { padding: 40px 0; }
-      .modal { padding: 30px 20px; }
-      .dropzone { padding: 30px 16px; }
-      .modal-overlay { padding: 16px; }
-    }
-  </style>
+  <link rel="stylesheet" href="assets/style.css" />
 </head>
 <body>
 
@@ -479,498 +20,125 @@
       <div class="brand-icon">G</div>
       <div class="brand-text">Gondrong <span>STIES</span></div>
     </a>
-    <div class="header-badge">🚀 All-in-One Converter</div>
+    <div class="header-actions">
+      <div class="header-badge">🚀 8 Kategori · 60+ Tools</div>
+    </div>
   </header>
 
   <section class="hero">
-    <h1>Ubah Format File <br><span class="highlight">Lebih Cepat & Aman</span></h1>
-    <p>Alat konversi file resmi dari <b>Gondrong STIES</b>. Proses dokumen, gambar, dan data langsung dari browser Anda tanpa server pihak ketiga. 100% Gratis.</p>
-    
-    <div class="filter-group">
-      <button class="filter-btn active" onclick="filterCat('semua')">Semua Alat</button>
-      <button class="filter-btn" onclick="filterCat('dokumen')">📄 Dokumen</button>
-      <button class="filter-btn" onclick="filterCat('gambar')">🖼️ Gambar</button>
-      <button class="filter-btn" onclick="filterCat('spreadsheet')">📊 Spreadsheet</button>
-      <button class="filter-btn" onclick="filterCat('teks')">📝 Teks</button>
-    </div>
+    <h1>Semua Tools Online <br><span class="highlight">Dalam Satu Tempat</span></h1>
+    <p>Konversi file, edit gambar, PDF tools, encoder, generator, kalkulator, dan developer utilities — semua gratis, semua privat, semua berjalan langsung di browser Anda.</p>
   </section>
 
-  <div class="grid" id="toolsGrid"></div>
+  <div class="cat-grid" id="catGrid"></div>
 
   <footer>
-    <p>Dikembangkan untuk kebutuhan produktivitas & akademik. Privasi sepenuhnya terjamin.</p>
+    <p>Dikembangkan untuk kebutuhan produktivitas & akademik. Privasi sepenuhnya terjamin — semua proses berjalan di browser.</p>
     <div class="dev-credit">Developed by <span>Gondrong STIES</span> | MaddazXD</div>
   </footer>
 </div>
 
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
-  <div class="modal">
-    <button class="btn-close" onclick="closeModal(null)">✕</button>
-    
-    <div class="modal-header">
-      <div class="modal-icon" id="modalIcon"></div>
-      <div>
-        <h2 id="modalTitle"></h2>
-      </div>
-    </div>
-    <p class="modal-desc" id="modalDesc"></p>
-
-    <div class="dropzone" id="dropzone">
-      <input type="file" id="fileInput" onchange="handleFile(this)" />
-      <div class="drop-icon" id="dropIcon">☁️</div>
-      <h3>Pilih atau Tarik File Kesini</h3>
-      <p id="acceptHint">Format didukung: ...</p>
-    </div>
-
-    <div class="file-selected" id="fileSelected">
-      <div class="file-icon">📎</div>
-      <div class="file-name" id="fileName">document.pdf</div>
-    </div>
-
-    <div class="input-group" id="formatWrap">
-      <label>Target Format Keluaran</label>
-      <select class="form-control" id="targetFormat"></select>
-    </div>
-
-    <button class="btn-convert" id="btnConvert" onclick="startConvert()">
-      Mulai Konversi File
-    </button>
-
-    <div class="progress-container" id="progressWrap">
-      <div class="progress-bar-bg">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <div class="progress-text" id="progressLabel">Memproses...</div>
-    </div>
-
-    <div class="status-alert" id="statusMsg"></div>
-  </div>
-</div>
-
 <script>
-// ─── TOOL DATA (Tetap Sama) ──────────────────────────────────────────────────
-const tools = [
+const categories = [
   {
-    id: 'pdf-to-word', name: 'PDF → Word', desc: 'Ubah dokumen PDF menjadi file Word yang dapat diedit dengan mudah.',
-    icon: '📄', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'dokumen', from: 'PDF', to: 'DOCX', accept: '.pdf', targets: ['docx']
+    id: 'file-converter',
+    name: 'Konversi File',
+    desc: 'Ubah format file: PDF, Word, Excel, gambar, CSV, JSON, dan lainnya.',
+    icon: '🔄',
+    iconBg: 'rgba(59, 130, 246, 0.15)',
+    color: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+    count: '12 Tools',
+    href: 'pages/file-converter.html'
   },
   {
-    id: 'word-to-pdf', name: 'Word → PDF', desc: 'Konversi file Word (.docx) menjadi PDF siap cetak.',
-    icon: '📋', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'dokumen', from: 'DOCX', to: 'PDF', accept: '.docx', targets: ['pdf']
+    id: 'image',
+    name: 'Gambar Tools',
+    desc: 'Upscale, resize, compress, crop, rotate, filter, watermark, dan ubah format gambar.',
+    icon: '🖼️',
+    iconBg: 'rgba(168, 85, 247, 0.15)',
+    color: 'linear-gradient(135deg, #a855f7, #ec4899)',
+    count: '8 Tools',
+    href: 'pages/image.html'
   },
   {
-    id: 'pdf-to-jpg', name: 'PDF → Gambar', desc: 'Ekstrak halaman PDF menjadi gambar JPG atau PNG berkualitas tinggi.',
-    icon: '🖼️', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'gambar', from: 'PDF', to: 'JPG / PNG', accept: '.pdf', targets: ['jpg', 'png']
+    id: 'pdf',
+    name: 'PDF Tools',
+    desc: 'Gabung, pisah, rotate, watermark, urutkan ulang halaman PDF, dan compress PDF.',
+    icon: '📄',
+    iconBg: 'rgba(239, 68, 68, 0.15)',
+    color: 'linear-gradient(135deg, #ef4444, #f59e0b)',
+    count: '6 Tools',
+    href: 'pages/pdf.html'
   },
   {
-    id: 'img-to-pdf', name: 'Gambar → PDF', desc: 'Gabungkan atau konversi gambar JPG, PNG, WEBP menjadi satu file PDF.',
-    icon: '🗂️', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'dokumen', from: 'JPG / PNG', to: 'PDF', accept: '.jpg,.jpeg,.png,.webp,.gif,.bmp', targets: ['pdf']
+    id: 'text',
+    name: 'Teks Tools',
+    desc: 'Hitung kata, ubah case, sort, find & replace, slugify, lorem ipsum, dan banyak lagi.',
+    icon: '📝',
+    iconBg: 'rgba(16, 185, 129, 0.15)',
+    color: 'linear-gradient(135deg, #10b981, #06b6d4)',
+    count: '8 Tools',
+    href: 'pages/text.html'
   },
   {
-    id: 'xlsx-to-csv', name: 'Excel → CSV', desc: 'Konversi spreadsheet Excel ke format CSV untuk analisis data.',
-    icon: '📊', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'spreadsheet', from: 'XLSX', to: 'CSV', accept: '.xlsx,.xls', targets: ['csv', 'json', 'html']
+    id: 'encoder',
+    name: 'Encoder & Decoder',
+    desc: 'Base64, URL, HTML, Hex, Binary, Morse, ROT13, hashing MD5/SHA, dan JWT decoder.',
+    icon: '🔐',
+    iconBg: 'rgba(245, 158, 11, 0.15)',
+    color: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    count: '10 Tools',
+    href: 'pages/encoder.html'
   },
   {
-    id: 'csv-to-xlsx', name: 'CSV → Excel', desc: 'Ubah file CSV menjadi spreadsheet Excel (.xlsx) dengan format rapi.',
-    icon: '📈', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'spreadsheet', from: 'CSV', to: 'XLSX', accept: '.csv', targets: ['xlsx']
+    id: 'generator',
+    name: 'Generator',
+    desc: 'QR Code, password kuat, UUID, random number, color palette, dan fake data generator.',
+    icon: '🎲',
+    iconBg: 'rgba(6, 182, 212, 0.15)',
+    color: 'linear-gradient(135deg, #06b6d4, #3b82f6)',
+    count: '6 Tools',
+    href: 'pages/generator.html'
   },
   {
-    id: 'img-convert', name: 'Konversi Gambar', desc: 'Ubah JPG, PNG, WEBP, BMP, GIF ke format gambar lainnya.',
-    icon: '🎨', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'gambar', from: 'JPG/PNG', to: 'Format Lain', accept: '.jpg,.jpeg,.png,.webp,.bmp,.gif', targets: ['jpg', 'png', 'webp']
+    id: 'unit',
+    name: 'Unit Converter',
+    desc: 'Konversi panjang, berat, suhu, luas, volume, waktu, kecepatan, BMI, dan umur.',
+    icon: '📐',
+    iconBg: 'rgba(236, 72, 153, 0.15)',
+    color: 'linear-gradient(135deg, #ec4899, #a855f7)',
+    count: '10 Tools',
+    href: 'pages/unit.html'
   },
   {
-    id: 'txt-to-pdf', name: 'Teks → PDF', desc: 'Konversi file teks biasa (.txt) menjadi dokumen PDF yang rapi.',
-    icon: '📝', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'teks', from: 'TXT', to: 'PDF', accept: '.txt,.md', targets: ['pdf']
-  },
-  {
-    id: 'json-to-csv', name: 'JSON → CSV', desc: 'Ubah data JSON menjadi spreadsheet CSV yang mudah dibaca.',
-    icon: '🔄', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'teks', from: 'JSON', to: 'CSV / XLSX', accept: '.json', targets: ['csv', 'xlsx']
-  },
-  {
-    id: 'word-to-txt', name: 'Word → Teks', desc: 'Ekstrak teks murni dari dokumen Word tanpa formatting.',
-    icon: '📃', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'teks', from: 'DOCX', to: 'TXT', accept: '.docx', targets: ['txt']
-  },
-  {
-    id: 'pdf-to-txt', name: 'PDF → Teks', desc: 'Ekstrak semua teks dari PDF menjadi file teks murni.',
-    icon: '🔍', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'teks', from: 'PDF', to: 'TXT', accept: '.pdf', targets: ['txt']
-  },
-  {
-    id: 'xlsx-to-pdf', name: 'Excel → PDF', desc: 'Cetak atau simpan spreadsheet Excel sebagai dokumen PDF.',
-    icon: '📉', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'dokumen', from: 'XLSX', to: 'PDF', accept: '.xlsx,.xls', targets: ['pdf']
+    id: 'developer',
+    name: 'Developer Tools',
+    desc: 'JSON formatter, XML formatter, regex tester, minifier, color converter, URL parser.',
+    icon: '💻',
+    iconBg: 'rgba(59, 130, 246, 0.15)',
+    color: 'linear-gradient(135deg, #3b82f6, #10b981)',
+    count: '7 Tools',
+    href: 'pages/developer.html'
   }
 ];
 
-// ─── RENDER CARDS ─────────────────────────────────────────────────────────────
-let activeCat = 'semua';
-
-function renderCards() {
-  const grid = document.getElementById('toolsGrid');
-  const filtered = activeCat === 'semua' ? tools : tools.filter(t => t.cat === activeCat);
-  grid.innerHTML = '';
-  filtered.forEach(t => {
-    grid.innerHTML += `
-      <div class="card" onclick="openModal('${t.id}')">
-        <div class="card-action">Mulai →</div>
-        <div class="card-icon" style="background:${t.iconBg}">${t.icon}</div>
-        <h3>${t.name}</h3>
-        <p>${t.desc}</p>
-        <div class="card-tags">
-          <span class="tag tag-from">${t.from}</span>
-          <span class="tag-arrow">➔</span>
-          <span class="tag tag-to">${t.to}</span>
-        </div>
-      </div>`;
-  });
+function renderCategories() {
+  const grid = document.getElementById('catGrid');
+  grid.innerHTML = categories.map(c => `
+    <a href="${c.href}" class="cat-card" style="--cat-bg:${c.iconBg};--cat-color:${c.color}">
+      <div class="cat-icon" style="background:${c.iconBg}">${c.icon}</div>
+      <h3>${c.name}</h3>
+      <p>${c.desc}</p>
+      <div class="cat-meta">
+        <span class="cat-count">${c.count}</span>
+        <span class="cat-arrow">Buka →</span>
+      </div>
+    </a>
+  `).join('');
 }
 
-function filterCat(cat) {
-  activeCat = cat;
-  document.querySelectorAll('.filter-btn').forEach(p => p.classList.remove('active'));
-  event.target.classList.add('active');
-  renderCards();
-}
-
-renderCards();
-
-// ─── MODAL LOGIC ──────────────────────────────────────────────────────────────
-let currentTool = null;
-let selectedFile = null;
-
-function openModal(id) {
-  currentTool = tools.find(t => t.id === id);
-  selectedFile = null;
-
-  document.getElementById('modalIcon').textContent = currentTool.icon;
-  document.getElementById('modalTitle').textContent = currentTool.name;
-  document.getElementById('modalDesc').textContent = currentTool.desc;
-  document.getElementById('fileInput').accept = currentTool.accept;
-  document.getElementById('fileInput').value = '';
-  document.getElementById('acceptHint').textContent = `Mendukung format: ${currentTool.accept.toUpperCase().replace(/\./g, '')}`;
-  document.getElementById('fileSelected').style.display = 'none';
-  document.getElementById('progressWrap').style.display = 'none';
-  document.getElementById('btnConvert').disabled = true;
-
-  const status = document.getElementById('statusMsg');
-  status.className = 'status-alert';
-  status.style.display = 'none';
-
-  const sel = document.getElementById('targetFormat');
-  sel.innerHTML = '';
-  currentTool.targets.forEach(t => {
-    sel.innerHTML += `<option value="${t}">${t.toUpperCase()}</option>`;
-  });
-
-  document.getElementById('modalOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden'; // Kunci scroll background
-}
-
-function closeModal(e) {
-  if (e && e.target !== document.getElementById('modalOverlay')) return;
-  document.getElementById('modalOverlay').classList.remove('open');
-  document.body.style.overflow = ''; // Kembalikan scroll background
-}
-
-// Drag and drop
-const dz = document.getElementById('dropzone');
-dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
-dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-dz.addEventListener('drop', e => {
-  e.preventDefault();
-  dz.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) {
-    document.getElementById('fileInput').files = e.dataTransfer.files;
-    handleFile(document.getElementById('fileInput'));
-  }
-});
-
-function handleFile(input) {
-  if (!input.files[0]) return;
-  selectedFile = input.files[0];
-  document.getElementById('fileName').textContent = selectedFile.name;
-  document.getElementById('fileSelected').style.display = 'flex';
-  document.getElementById('btnConvert').disabled = false;
-  document.getElementById('statusMsg').style.display = 'none';
-}
-
-// ─── PROGRESS HELPERS ─────────────────────────────────────────────────────────
-function showProgress(pct, label) {
-  document.getElementById('progressWrap').style.display = 'block';
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = label;
-}
-
-function showStatus(type, msg) {
-  const el = document.getElementById('statusMsg');
-  el.className = 'status-alert ' + type;
-  el.innerHTML = (type === 'success' ? '✅ ' : '⚠️ ') + msg;
-  el.style.display = 'flex';
-}
-
-function downloadBlob(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function baseName(file) {
-  return file.name.replace(/\.[^.]+$/, '');
-}
-
-// ─── CONVERTERS ───────────────────────────────────────────────────────────────
-async function startConvert() {
-  if (!selectedFile || !currentTool) return;
-  const target = document.getElementById('targetFormat').value;
-  const btn = document.getElementById('btnConvert');
-  btn.disabled = true;
-  document.getElementById('statusMsg').style.display = 'none';
-
-  try {
-    switch (currentTool.id) {
-      case 'pdf-to-jpg':   await pdfToImage(selectedFile, target); break;
-      case 'img-to-pdf':   await imageToPdf(selectedFile); break;
-      case 'word-to-pdf':  await wordToPdf(selectedFile); break;
-      case 'pdf-to-word':  await pdfToWord(selectedFile); break;
-      case 'xlsx-to-csv':  await xlsxConvert(selectedFile, target); break;
-      case 'csv-to-xlsx':  await csvToXlsx(selectedFile); break;
-      case 'img-convert':  await imgConvert(selectedFile, target); break;
-      case 'txt-to-pdf':   await txtToPdf(selectedFile); break;
-      case 'json-to-csv':  await jsonConvert(selectedFile, target); break;
-      case 'word-to-txt':  await wordToTxt(selectedFile); break;
-      case 'pdf-to-txt':   await pdfToTxt(selectedFile); break;
-      case 'xlsx-to-pdf':  await xlsxToPdf(selectedFile); break;
-      default: showStatus('error', 'Konverter tidak ditemukan.');
-    }
-  } catch(err) {
-    showStatus('error', 'Gagal: ' + err.message);
-    console.error(err);
-  } finally {
-    btn.disabled = false;
-  }
-}
-
-// PDF → IMAGE
-async function pdfToImage(file, fmt) {
-  showProgress(10, 'Memuat PDF...');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  showProgress(30, `PDF dimuat — ${pdf.numPages} halaman`);
-  const mimeType = fmt === 'png' ? 'image/png' : 'image/jpeg';
-  const ext = fmt === 'png' ? 'png' : 'jpg';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const vp = page.getViewport({ scale: 2 });
-    const canvas = document.createElement('canvas');
-    canvas.width = vp.width; canvas.height = vp.height;
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
-    const blob = await new Promise(res => canvas.toBlob(res, mimeType, 0.92));
-    downloadBlob(blob, `${baseName(file)}_hal${i}.${ext}`);
-    showProgress(30 + (i / pdf.numPages) * 70, `Halaman ${i}/${pdf.numPages} selesai`);
-  }
-  showStatus('success', `${pdf.numPages} gambar berhasil diunduh!`);
-}
-
-// IMG → PDF
-async function imageToPdf(file) {
-  showProgress(20, 'Membaca gambar...');
-  const { jsPDF } = window.jspdf;
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
-  showProgress(60, 'Membuat PDF...');
-  const pdf = new jsPDF({ orientation: img.width > img.height ? 'l' : 'p', unit: 'px', format: [img.width, img.height] });
-  pdf.addImage(img, file.type.includes('png') ? 'PNG' : 'JPEG', 0, 0, img.width, img.height);
-  showProgress(90, 'Menyimpan...');
-  pdf.save(baseName(file) + '.pdf');
-  showStatus('success', 'PDF berhasil dibuat!');
-  URL.revokeObjectURL(url);
-}
-
-// WORD → PDF
-async function wordToPdf(file) {
-  showProgress(20, 'Membaca dokumen Word...');
-  const ab = await file.arrayBuffer();
-  const result = await mammoth.convertToHtml({ arrayBuffer: ab });
-  showProgress(55, 'Mengkonversi ke PDF...');
-  const { jsPDF } = window.jspdf;
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;padding:60px;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#111;background:#fff;';
-  container.innerHTML = result.value;
-  document.body.appendChild(container);
-  showProgress(70, 'Rendering...');
-  const canvas = await html2canvas(container, { scale: 1.5, useCORS: true });
-  document.body.removeChild(container);
-  const imgW = canvas.width; const imgH = canvas.height;
-  const pdf = new jsPDF({ unit: 'px', format: [imgW, imgH] });
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, imgW, imgH);
-  showProgress(95, 'Menyimpan...');
-  pdf.save(baseName(file) + '.pdf');
-  showStatus('success', 'PDF berhasil dibuat!');
-}
-
-// PDF → WORD (extract text → docx via plain text blob)
-async function pdfToWord(file) {
-  showProgress(10, 'Membaca PDF...');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  let text = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    text += content.items.map(s => s.str).join(' ') + '\n\n';
-    showProgress(10 + (i / pdf.numPages) * 70, `Mengekstrak halaman ${i}/${pdf.numPages}`);
-  }
-  const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\f0\\fs24 ${text.replace(/\n/g, '\\par ')}}`;
-  const blob = new Blob([rtf], { type: 'application/rtf' });
-  downloadBlob(blob, baseName(file) + '.rtf');
-  showStatus('success', 'File Word (.rtf) berhasil diunduh! Buka dengan Microsoft Word.');
-}
-
-// XLSX → CSV / JSON / HTML
-async function xlsxConvert(file, fmt) {
-  showProgress(30, 'Membaca Excel...');
-  const ab = await file.arrayBuffer();
-  const wb = XLSX.read(ab);
-  showProgress(60, 'Mengkonversi...');
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  let blob, ext;
-  if (fmt === 'csv') {
-    const csv = XLSX.utils.sheet_to_csv(ws);
-    blob = new Blob([csv], { type: 'text/csv' }); ext = 'csv';
-  } else if (fmt === 'json') {
-    const json = JSON.stringify(XLSX.utils.sheet_to_json(ws), null, 2);
-    blob = new Blob([json], { type: 'application/json' }); ext = 'json';
-  } else {
-    const html = XLSX.utils.sheet_to_html(ws);
-    blob = new Blob([html], { type: 'text/html' }); ext = 'html';
-  }
-  showProgress(90, 'Menyimpan...');
-  downloadBlob(blob, baseName(file) + '.' + ext);
-  showStatus('success', `File ${ext.toUpperCase()} berhasil diunduh!`);
-}
-
-// CSV → XLSX
-async function csvToXlsx(file) {
-  showProgress(30, 'Membaca CSV...');
-  const text = await file.text();
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(text.trim().split('\n').map(r => r.split(',')));
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  showProgress(75, 'Membuat Excel...');
-  XLSX.writeFile(wb, baseName(file) + '.xlsx');
-  showStatus('success', 'File Excel berhasil diunduh!');
-}
-
-// IMAGE CONVERT (JPG ↔ PNG ↔ WEBP)
-async function imgConvert(file, fmt) {
-  showProgress(20, 'Membaca gambar...');
-  const url = URL.createObjectURL(file);
-  const img = new Image();
-  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
-  showProgress(60, 'Mengkonversi...');
-  const canvas = document.createElement('canvas');
-  canvas.width = img.width; canvas.height = img.height;
-  canvas.getContext('2d').drawImage(img, 0, 0);
-  const mimeMap = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
-  const blob = await new Promise(res => canvas.toBlob(res, mimeMap[fmt], 0.92));
-  showProgress(90, 'Menyimpan...');
-  downloadBlob(blob, baseName(file) + '.' + fmt);
-  showStatus('success', `Gambar berhasil dikonversi ke ${fmt.toUpperCase()}!`);
-  URL.revokeObjectURL(url);
-}
-
-// TXT → PDF
-async function txtToPdf(file) {
-  showProgress(20, 'Membaca teks...');
-  const text = await file.text();
-  const { jsPDF } = window.jspdf;
-  showProgress(50, 'Membuat PDF...');
-  const pdf = new jsPDF();
-  const lines = pdf.splitTextToSize(text, 180);
-  let y = 20;
-  lines.forEach(line => {
-    if (y > 280) { pdf.addPage(); y = 20; }
-    pdf.text(line, 15, y);
-    y += 7;
-  });
-  showProgress(90, 'Menyimpan...');
-  pdf.save(baseName(file) + '.pdf');
-  showStatus('success', 'PDF berhasil dibuat!');
-}
-
-// JSON → CSV / XLSX
-async function jsonConvert(file, fmt) {
-  showProgress(25, 'Membaca JSON...');
-  const text = await file.text();
-  let data = JSON.parse(text);
-  if (!Array.isArray(data)) data = [data];
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.json_to_sheet(data);
-  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  showProgress(70, 'Mengkonversi...');
-  if (fmt === 'csv') {
-    const csv = XLSX.utils.sheet_to_csv(ws);
-    downloadBlob(new Blob([csv], { type: 'text/csv' }), baseName(file) + '.csv');
-  } else {
-    XLSX.writeFile(wb, baseName(file) + '.xlsx');
-  }
-  showStatus('success', `File ${fmt.toUpperCase()} berhasil diunduh!`);
-}
-
-// WORD → TXT
-async function wordToTxt(file) {
-  showProgress(30, 'Membaca Word...');
-  const ab = await file.arrayBuffer();
-  const result = await mammoth.extractRawText({ arrayBuffer: ab });
-  showProgress(80, 'Menyimpan...');
-  downloadBlob(new Blob([result.value], { type: 'text/plain' }), baseName(file) + '.txt');
-  showStatus('success', 'Teks berhasil diekstrak!');
-}
-
-// PDF → TXT
-async function pdfToTxt(file) {
-  showProgress(10, 'Membaca PDF...');
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const ab = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-  let text = '';
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    text += content.items.map(s => s.str).join(' ') + '\n\n';
-    showProgress(10 + (i / pdf.numPages) * 80, `Halaman ${i}/${pdf.numPages}`);
-  }
-  downloadBlob(new Blob([text], { type: 'text/plain' }), baseName(file) + '.txt');
-  showStatus('success', 'Teks berhasil diekstrak!');
-}
-
-// XLSX → PDF
-async function xlsxToPdf(file) {
-  showProgress(20, 'Membaca Excel...');
-  const ab = await file.arrayBuffer();
-  const wb = XLSX.read(ab);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const html = XLSX.utils.sheet_to_html(ws);
-  showProgress(45, 'Rendering...');
-  const container = document.createElement('div');
-  container.style.cssText = 'position:fixed;left:-9999px;top:0;padding:40px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
-  container.innerHTML = `<style>table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px 8px}</style>${html}`;
-  document.body.appendChild(container);
-  const canvas = await html2canvas(container, { scale: 1.5 });
-  document.body.removeChild(container);
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
-  pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, canvas.width, canvas.height);
-  showProgress(95, 'Menyimpan...');
-  pdf.save(baseName(file) + '.pdf');
-  showStatus('success', 'PDF berhasil dibuat!');
-}
-
-// Tutup modal dengan tombol ESC
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(null); });
+renderCategories();
 </script>
+
 </body>
 </html>

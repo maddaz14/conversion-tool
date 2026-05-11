@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teks Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>📝 <span class="highlight">Teks Tools</span></h1>
+    <p>Hitung kata, ubah case, sort, find & replace, slugify, Lorem Ipsum, dan banyak utilitas teks lainnya.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="counter"><span class="nav-emoji">🔢</span> Word Counter</button>
+        <button data-tool="case"><span class="nav-emoji">🔠</span> Case Converter</button>
+        <button data-tool="sort"><span class="nav-emoji">🔃</span> Sort Lines</button>
+        <button data-tool="dedupe"><span class="nav-emoji">♻️</span> Remove Duplicates</button>
+        <button data-tool="replace"><span class="nav-emoji">🔍</span> Find & Replace</button>
+        <button data-tool="reverse"><span class="nav-emoji">↩️</span> Reverse Text</button>
+        <button data-tool="slugify"><span class="nav-emoji">🔗</span> Slugify</button>
+        <button data-tool="lorem"><span class="nav-emoji">📜</span> Lorem Ipsum</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <!-- COUNTER -->
+      <div class="tool-panel" id="panel-counter">
+        <h2>🔢 Word / Character Counter</h2>
+        <p class="panel-desc">Hitung jumlah kata, karakter, kalimat, paragraf, dan waktu baca otomatis.</p>
+
+        <div class="field">
+          <label>Teks</label>
+          <textarea class="form-control" id="ct-input" placeholder="Ketik atau paste teks di sini..." rows="8"></textarea>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="ct-chars">0</div>
+            <div class="stat-label">Karakter</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-charsNoSpace">0</div>
+            <div class="stat-label">Tanpa Spasi</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-words">0</div>
+            <div class="stat-label">Kata</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-sentences">0</div>
+            <div class="stat-label">Kalimat</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-paragraphs">0</div>
+            <div class="stat-label">Paragraf</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-lines">0</div>
+            <div class="stat-label">Baris</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="ct-readTime">0 mnt</div>
+            <div class="stat-label">Waktu Baca</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CASE -->
+      <div class="tool-panel" id="panel-case">
+        <h2>🔠 Case Converter</h2>
+        <p class="panel-desc">Ubah teks menjadi UPPER, lower, Title, Sentence, camelCase, snake_case, kebab-case, atau PascalCase.</p>
+
+        <div class="field">
+          <label>Teks Input</label>
+          <textarea class="form-control" id="cs-input" placeholder="Masukkan teks..." rows="5"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" data-case="upper">UPPER CASE</button>
+          <button class="btn btn-sm" data-case="lower">lower case</button>
+          <button class="btn btn-sm" data-case="title">Title Case</button>
+          <button class="btn btn-sm" data-case="sentence">Sentence case</button>
+          <button class="btn btn-sm" data-case="camel">camelCase</button>
+          <button class="btn btn-sm" data-case="pascal">PascalCase</button>
+          <button class="btn btn-sm" data-case="snake">snake_case</button>
+          <button class="btn btn-sm" data-case="kebab">kebab-case</button>
+          <button class="btn btn-sm" data-case="constant">CONSTANT_CASE</button>
+          <button class="btn btn-sm" data-case="alternate">aLtErNaTe</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="cs-output" rows="5" readonly></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" id="cs-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="cs-clear">↺ Clear</button>
+        </div>
+        <div class="status-alert" id="st-case"></div>
+      </div>
+
+      <!-- SORT -->
+      <div class="tool-panel" id="panel-sort">
+        <h2>🔃 Sort Lines</h2>
+        <p class="panel-desc">Urutkan baris secara A-Z, Z-A, berdasarkan panjang, atau acak.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="so-input" placeholder="Baris 1&#10;Baris 2&#10;Baris 3" rows="7"></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Mode</label>
+            <select class="form-control" id="so-mode">
+              <option value="asc">A → Z (asc)</option>
+              <option value="desc">Z → A (desc)</option>
+              <option value="lenAsc">Panjang (pendek → panjang)</option>
+              <option value="lenDesc">Panjang (panjang → pendek)</option>
+              <option value="numAsc">Numerik (kecil → besar)</option>
+              <option value="numDesc">Numerik (besar → kecil)</option>
+              <option value="random">Acak</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Pengaturan</label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="so-case" />
+              <span>Case sensitive</span>
+            </label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-sort">Sort</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="so-output" rows="7" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="so-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-sort"></div>
+      </div>
+
+      <!-- DEDUPE -->
+      <div class="tool-panel" id="panel-dedupe">
+        <h2>♻️ Remove Duplicates</h2>
+        <p class="panel-desc">Hilangkan baris duplikat, baris kosong, atau spasi berlebih.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="dd-input" rows="7" placeholder="Tempel teks Anda di sini..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <label class="checkbox-row">
+            <input type="checkbox" id="dd-trim" checked />
+            <span>Trim spasi</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="dd-empty" checked />
+            <span>Hapus baris kosong</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="dd-case" />
+            <span>Case sensitive</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-dedupe">Hapus Duplikat</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="dd-output" rows="7" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="dd-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-dedupe"></div>
+      </div>
+
+      <!-- REPLACE -->
+      <div class="tool-panel" id="panel-replace">
+        <h2>🔍 Find & Replace</h2>
+        <p class="panel-desc">Cari dan ganti teks. Mendukung mode regex.</p>
+
+        <div class="field">
+          <label>Teks</label>
+          <textarea class="form-control" id="fr-input" rows="6" placeholder="Tempel teks Anda di sini..."></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Cari</label>
+            <input type="text" class="form-control" id="fr-find" placeholder="kata yang dicari" />
+          </div>
+          <div class="field">
+            <label>Ganti dengan</label>
+            <input type="text" class="form-control" id="fr-replace" placeholder="kata pengganti" />
+          </div>
+        </div>
+
+        <div class="field-row-3">
+          <label class="checkbox-row">
+            <input type="checkbox" id="fr-case" />
+            <span>Case sensitive</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="fr-regex" />
+            <span>Regex</span>
+          </label>
+          <label class="checkbox-row">
+            <input type="checkbox" id="fr-word" />
+            <span>Whole word</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-replace">Ganti Semua</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="fr-output" rows="6" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="fr-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-replace"></div>
+      </div>
+
+      <!-- REVERSE -->
+      <div class="tool-panel" id="panel-reverse">
+        <h2>↩️ Reverse Text</h2>
+        <p class="panel-desc">Balik teks per karakter, per kata, atau per baris.</p>
+
+        <div class="field">
+          <label>Teks Input</label>
+          <textarea class="form-control" id="rv-input" rows="5"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" data-rev="char">Per karakter</button>
+          <button class="btn btn-sm" data-rev="word">Per kata</button>
+          <button class="btn btn-sm" data-rev="line">Per baris</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="rv-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="rv-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-reverse"></div>
+      </div>
+
+      <!-- SLUGIFY -->
+      <div class="tool-panel" id="panel-slugify">
+        <h2>🔗 Slugify</h2>
+        <p class="panel-desc">Ubah teks menjadi URL slug yang valid (lowercase, dash-separated, tanpa karakter spesial).</p>
+
+        <div class="field">
+          <label>Teks</label>
+          <input type="text" class="form-control" id="sl-input" placeholder="Judul Artikel Saya yang Keren!" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Separator</label>
+            <select class="form-control" id="sl-sep">
+              <option value="-">- (dash)</option>
+              <option value="_">_ (underscore)</option>
+              <option value=".">. (dot)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Pengaturan</label>
+            <label class="checkbox-row">
+              <input type="checkbox" id="sl-lower" checked />
+              <span>Lowercase</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Hasil</label>
+          <input type="text" class="form-control text-mono" id="sl-output" readonly />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="sl-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-slugify"></div>
+      </div>
+
+      <!-- LOREM -->
+      <div class="tool-panel" id="panel-lorem">
+        <h2>📜 Lorem Ipsum Generator</h2>
+        <p class="panel-desc">Generate paragraf placeholder untuk desain & layout.</p>
+
+        <div class="field-row-3">
+          <div class="field">
+            <label>Tipe</label>
+            <select class="form-control" id="lo-type">
+              <option value="paragraph">Paragraf</option>
+              <option value="sentence">Kalimat</option>
+              <option value="word">Kata</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Jumlah</label>
+            <input type="number" class="form-control" id="lo-count" value="3" min="1" max="100" />
+          </div>
+          <div class="field">
+            <label>Mulai dengan</label>
+            <select class="form-control" id="lo-start">
+              <option value="lorem">"Lorem ipsum..."</option>
+              <option value="random">Acak</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-lorem">Generate</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="lo-output" rows="8" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="lo-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-lorem"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '📝 Teks Tools' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'counter');
+
+// ─── COUNTER ──────────────────────────────────────────────────
+function updateCounter() {
+  const t = document.getElementById('ct-input').value;
+  document.getElementById('ct-chars').textContent = t.length;
+  document.getElementById('ct-charsNoSpace').textContent = t.replace(/\s/g, '').length;
+  const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+  document.getElementById('ct-words').textContent = words;
+  const sentences = t.trim() ? (t.match(/[.!?]+(\s|$)/g) || []).length || 1 : 0;
+  document.getElementById('ct-sentences').textContent = sentences;
+  const paragraphs = t.trim() ? t.split(/\n\s*\n/).filter(p => p.trim()).length : 0;
+  document.getElementById('ct-paragraphs').textContent = paragraphs;
+  document.getElementById('ct-lines').textContent = t === '' ? 0 : t.split('\n').length;
+  // Avg reading speed: 200 wpm
+  const mins = Math.ceil(words / 200);
+  document.getElementById('ct-readTime').textContent = (words === 0 ? '0' : mins) + ' mnt';
+}
+document.getElementById('ct-input').addEventListener('input', updateCounter);
+updateCounter();
+
+// ─── CASE ──────────────────────────────────────────────────
+function toCase(s, mode) {
+  switch (mode) {
+    case 'upper': return s.toUpperCase();
+    case 'lower': return s.toLowerCase();
+    case 'title': return s.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    case 'sentence': return s.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g, c => c.toUpperCase());
+    case 'camel': {
+      const words = s.trim().split(/[\s_\-]+/).filter(Boolean);
+      return words.map((w, i) => i === 0 ? w.toLowerCase() : w[0].toUpperCase() + w.slice(1).toLowerCase()).join('');
+    }
+    case 'pascal': {
+      const words = s.trim().split(/[\s_\-]+/).filter(Boolean);
+      return words.map(w => w[0].toUpperCase() + w.slice(1).toLowerCase()).join('');
+    }
+    case 'snake': return s.trim().toLowerCase().replace(/[\s\-]+/g, '_').replace(/[^\w]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    case 'kebab': return s.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^\w-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    case 'constant': return s.trim().toUpperCase().replace(/[\s\-]+/g, '_').replace(/[^\w]/g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '');
+    case 'alternate': return s.split('').map((c, i) => i % 2 ? c.toUpperCase() : c.toLowerCase()).join('');
+  }
+  return s;
+}
+document.querySelectorAll('[data-case]').forEach(b => {
+  b.addEventListener('click', () => {
+    const t = document.getElementById('cs-input').value;
+    document.getElementById('cs-output').value = toCase(t, b.dataset.case);
+  });
+});
+document.getElementById('cs-copy').addEventListener('click', () => copyToClipboard(document.getElementById('cs-output').value, 'st-case'));
+document.getElementById('cs-clear').addEventListener('click', () => {
+  document.getElementById('cs-input').value = '';
+  document.getElementById('cs-output').value = '';
+});
+
+// ─── SORT ──────────────────────────────────────────────────
+document.getElementById('btn-sort').addEventListener('click', () => {
+  const mode = document.getElementById('so-mode').value;
+  const cs = document.getElementById('so-case').checked;
+  let lines = document.getElementById('so-input').value.split('\n');
+  const cmp = (a, b) => {
+    const x = cs ? a : a.toLowerCase();
+    const y = cs ? b : b.toLowerCase();
+    return x < y ? -1 : x > y ? 1 : 0;
+  };
+  if (mode === 'asc') lines.sort(cmp);
+  else if (mode === 'desc') lines.sort((a, b) => -cmp(a, b));
+  else if (mode === 'lenAsc') lines.sort((a, b) => a.length - b.length);
+  else if (mode === 'lenDesc') lines.sort((a, b) => b.length - a.length);
+  else if (mode === 'numAsc') lines.sort((a, b) => parseFloat(a) - parseFloat(b));
+  else if (mode === 'numDesc') lines.sort((a, b) => parseFloat(b) - parseFloat(a));
+  else if (mode === 'random') { for (let i = lines.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [lines[i], lines[j]] = [lines[j], lines[i]]; } }
+  document.getElementById('so-output').value = lines.join('\n');
+  showStatus('st-sort', 'success', `${lines.length} baris diurutkan.`);
+});
+document.getElementById('so-copy').addEventListener('click', () => copyToClipboard(document.getElementById('so-output').value, 'st-sort'));
+
+// ─── DEDUPE ──────────────────────────────────────────────────
+document.getElementById('btn-dedupe').addEventListener('click', () => {
+  const trim = document.getElementById('dd-trim').checked;
+  const stripEmpty = document.getElementById('dd-empty').checked;
+  const cs = document.getElementById('dd-case').checked;
+  let lines = document.getElementById('dd-input').value.split('\n');
+  if (trim) lines = lines.map(l => l.trim());
+  if (stripEmpty) lines = lines.filter(l => l.length > 0);
+  const seen = new Set();
+  const out = [];
+  for (const l of lines) {
+    const key = cs ? l : l.toLowerCase();
+    if (!seen.has(key)) { seen.add(key); out.push(l); }
+  }
+  const removed = lines.length - out.length;
+  document.getElementById('dd-output').value = out.join('\n');
+  showStatus('st-dedupe', 'success', `${out.length} baris unik, ${removed} duplikat dihapus.`);
+});
+document.getElementById('dd-copy').addEventListener('click', () => copyToClipboard(document.getElementById('dd-output').value, 'st-dedupe'));
+
+// ─── REPLACE ──────────────────────────────────────────────────
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+document.getElementById('btn-replace').addEventListener('click', () => {
+  try {
+    const text = document.getElementById('fr-input').value;
+    const find = document.getElementById('fr-find').value;
+    const repl = document.getElementById('fr-replace').value;
+    const cs = document.getElementById('fr-case').checked;
+    const isRegex = document.getElementById('fr-regex').checked;
+    const wholeWord = document.getElementById('fr-word').checked;
+    if (!find) return;
+    let pattern = isRegex ? find : escapeRegex(find);
+    if (wholeWord) pattern = '\\b' + pattern + '\\b';
+    const flags = 'g' + (cs ? '' : 'i');
+    const re = new RegExp(pattern, flags);
+    const matches = text.match(re);
+    const out = text.replace(re, repl);
+    document.getElementById('fr-output').value = out;
+    showStatus('st-replace', 'success', `${matches ? matches.length : 0} kemunculan diganti.`);
+  } catch (e) {
+    showStatus('st-replace', 'error', 'Regex tidak valid: ' + e.message);
+  }
+});
+document.getElementById('fr-copy').addEventListener('click', () => copyToClipboard(document.getElementById('fr-output').value, 'st-replace'));
+
+// ─── REVERSE ──────────────────────────────────────────────────
+document.querySelectorAll('[data-rev]').forEach(b => {
+  b.addEventListener('click', () => {
+    const t = document.getElementById('rv-input').value;
+    let out;
+    if (b.dataset.rev === 'char') out = [...t].reverse().join('');
+    else if (b.dataset.rev === 'word') out = t.split(/\s+/).reverse().join(' ');
+    else out = t.split('\n').reverse().join('\n');
+    document.getElementById('rv-output').value = out;
+  });
+});
+document.getElementById('rv-copy').addEventListener('click', () => copyToClipboard(document.getElementById('rv-output').value, 'st-reverse'));
+
+// ─── SLUGIFY ──────────────────────────────────────────────────
+function slugify(s, sep, lower) {
+  // Remove diacritics
+  let r = s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  r = r.replace(/[^a-zA-Z0-9\s\-_]/g, ' ').trim().replace(/\s+/g, sep);
+  if (lower) r = r.toLowerCase();
+  return r.replace(new RegExp(`\\${sep}+`, 'g'), sep).replace(new RegExp(`^\\${sep}|\\${sep}$`, 'g'), '');
+}
+function updateSlug() {
+  const inp = document.getElementById('sl-input').value;
+  const sep = document.getElementById('sl-sep').value;
+  const lower = document.getElementById('sl-lower').checked;
+  document.getElementById('sl-output').value = slugify(inp, sep, lower);
+}
+['sl-input', 'sl-sep', 'sl-lower'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateSlug);
+  document.getElementById(id).addEventListener('change', updateSlug);
+});
+document.getElementById('sl-copy').addEventListener('click', () => copyToClipboard(document.getElementById('sl-output').value, 'st-slugify'));
+
+// ─── LOREM ──────────────────────────────────────────────────
+const loremWords = ('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum nemo voluptas accusantium doloremque laudantium totam rem aperiam eaque ipsa quae ab illo inventore veritatis quasi architecto beatae vitae dicta explicabo').split(' ');
+
+function loremWord() { return loremWords[Math.floor(Math.random() * loremWords.length)]; }
+function loremSentence() {
+  const len = 8 + Math.floor(Math.random() * 12);
+  const arr = Array.from({ length: len }, loremWord);
+  arr[0] = arr[0][0].toUpperCase() + arr[0].slice(1);
+  // Maybe insert commas
+  if (len > 10) arr.splice(Math.floor(len / 2), 0, '');
+  return arr.join(' ').replace(/  /g, ', ') + '.';
+}
+function loremParagraph() {
+  const len = 4 + Math.floor(Math.random() * 4);
+  return Array.from({ length: len }, loremSentence).join(' ');
+}
+
+document.getElementById('btn-lorem').addEventListener('click', () => {
+  const type = document.getElementById('lo-type').value;
+  const count = parseInt(document.getElementById('lo-count').value) || 1;
+  const startLorem = document.getElementById('lo-start').value === 'lorem';
+  let out;
+  if (type === 'word') {
+    const arr = Array.from({ length: count }, loremWord);
+    if (startLorem && count > 1) { arr[0] = 'Lorem'; arr[1] = 'ipsum'; }
+    out = arr.join(' ');
+  } else if (type === 'sentence') {
+    const arr = Array.from({ length: count }, loremSentence);
+    if (startLorem) arr[0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.';
+    out = arr.join(' ');
+  } else {
+    const arr = Array.from({ length: count }, loremParagraph);
+    if (startLorem) arr[0] = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ' + arr[0];
+    out = arr.join('\n\n');
+  }
+  document.getElementById('lo-output').value = out;
+  showStatus('st-lorem', 'success', `${count} ${type} di-generate.`);
+});
+document.getElementById('lo-copy').addEventListener('click', () => copyToClipboard(document.getElementById('lo-output').value, 'st-lorem'));
+</script>
+
+</body>
+</html>

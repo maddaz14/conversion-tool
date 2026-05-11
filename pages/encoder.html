@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Encoder & Decoder — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🔐 <span class="highlight">Encoder & Decoder</span></h1>
+    <p>Encode/decode Base64, URL, HTML entity, Hex, Binary, Morse, ROT13, hashing MD5/SHA, dan JWT decoder — semua di browser.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="base64"><span class="nav-emoji">🅱️</span> Base64</button>
+        <button data-tool="url"><span class="nav-emoji">🌐</span> URL Encode</button>
+        <button data-tool="html"><span class="nav-emoji">📄</span> HTML Entity</button>
+        <button data-tool="hex"><span class="nav-emoji">🔢</span> Hex ↔ Text</button>
+        <button data-tool="binary"><span class="nav-emoji">💾</span> Binary ↔ Text</button>
+        <button data-tool="morse"><span class="nav-emoji">📡</span> Morse Code</button>
+        <button data-tool="rot13"><span class="nav-emoji">🔄</span> ROT13 / Caesar</button>
+        <button data-tool="hash"><span class="nav-emoji">#️⃣</span> Hash (MD5/SHA)</button>
+        <button data-tool="jwt"><span class="nav-emoji">🪪</span> JWT Decoder</button>
+        <button data-tool="ascii"><span class="nav-emoji">🔡</span> ASCII Codes</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <!-- BASE64 -->
+      <div class="tool-panel" id="panel-base64">
+        <h2>🅱️ Base64 Encode / Decode</h2>
+        <p class="panel-desc">Encode teks ke Base64 atau decode Base64 ke teks. UTF-8 safe.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="b64-input" rows="5" placeholder="Teks atau Base64..."></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-b64-enc">Encode →</button>
+          <button class="btn" id="btn-b64-dec">← Decode</button>
+          <button class="btn" id="btn-b64-swap">↕ Swap</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="b64-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="b64-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-b64"></div>
+      </div>
+
+      <!-- URL -->
+      <div class="tool-panel" id="panel-url">
+        <h2>🌐 URL Encode / Decode</h2>
+        <p class="panel-desc">Encode karakter spesial ke URL-safe format (percent-encoding) atau sebaliknya.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="url-input" rows="5"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-url-enc">Encode</button>
+          <button class="btn" id="btn-url-dec">Decode</button>
+          <button class="btn" id="btn-url-comp">encodeURIComponent</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="url-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="url-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-url"></div>
+      </div>
+
+      <!-- HTML -->
+      <div class="tool-panel" id="panel-html">
+        <h2>📄 HTML Entity Encode / Decode</h2>
+        <p class="panel-desc">Konversi karakter HTML (<code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code>, dll.) ke entity, atau decode.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="html-input" rows="5"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-html-enc">Encode</button>
+          <button class="btn" id="btn-html-dec">Decode</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="html-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="html-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-html"></div>
+      </div>
+
+      <!-- HEX -->
+      <div class="tool-panel" id="panel-hex">
+        <h2>🔢 Hex ↔ Text</h2>
+        <p class="panel-desc">Konversi teks ke hexadecimal bytes atau sebaliknya.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="hex-input" rows="5"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Separator (untuk encode)</label>
+          <select class="form-control" id="hex-sep">
+            <option value=" ">Spasi</option>
+            <option value="">Tanpa separator</option>
+            <option value="-">Dash (-)</option>
+            <option value=":">Colon (:)</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-hex-enc">Text → Hex</button>
+          <button class="btn" id="btn-hex-dec">Hex → Text</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="hex-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="hex-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-hex"></div>
+      </div>
+
+      <!-- BINARY -->
+      <div class="tool-panel" id="panel-binary">
+        <h2>💾 Binary ↔ Text</h2>
+        <p class="panel-desc">Konversi teks ke binary (8-bit per char) atau decode binary ke teks.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="bin-input" rows="5"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-bin-enc">Text → Binary</button>
+          <button class="btn" id="btn-bin-dec">Binary → Text</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="bin-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="bin-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-bin"></div>
+      </div>
+
+      <!-- MORSE -->
+      <div class="tool-panel" id="panel-morse">
+        <h2>📡 Morse Code</h2>
+        <p class="panel-desc">Encode teks ke kode Morse atau sebaliknya.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="ms-input" rows="5" placeholder="HELLO WORLD atau .... . .-.. .-.. ---"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-ms-enc">Text → Morse</button>
+          <button class="btn" id="btn-ms-dec">Morse → Text</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="ms-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="ms-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-ms"></div>
+      </div>
+
+      <!-- ROT13 -->
+      <div class="tool-panel" id="panel-rot13">
+        <h2>🔄 ROT13 / Caesar Cipher</h2>
+        <p class="panel-desc">Cipher klasik dengan pergeseran huruf. ROT13 adalah pergeseran 13 yang reversible.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="rot-input" rows="5"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Shift (1-25)</label>
+          <div class="range-row">
+            <input type="range" id="rot-shift" min="1" max="25" value="13" />
+            <span class="range-value" id="rot-shift-val">13</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-rot-enc">Encrypt</button>
+          <button class="btn" id="btn-rot-dec">Decrypt</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="rot-output" rows="5" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="rot-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-rot"></div>
+      </div>
+
+      <!-- HASH -->
+      <div class="tool-panel" id="panel-hash">
+        <h2>#️⃣ Hash Generator</h2>
+        <p class="panel-desc">Generate hash MD5, SHA-1, SHA-256, SHA-512 dari teks atau file.</p>
+
+        <div class="field">
+          <label>Input Teks</label>
+          <textarea class="form-control" id="hash-input" rows="4" placeholder="Tempel teks di sini..."></textarea>
+        </div>
+
+        <div class="field">
+          <label>Atau Upload File</label>
+          <div class="dropzone" id="dz-hash">
+            <input type="file" id="file-hash" />
+            <div class="drop-icon">📎</div>
+            <h3>Pilih file untuk di-hash</h3>
+            <p>File apa saja</p>
+          </div>
+          <div class="file-list" id="list-hash"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-hash">Generate Hash</button>
+
+        <div class="field mt-3">
+          <label>MD5</label>
+          <input type="text" class="form-control text-mono" id="hash-md5" readonly />
+        </div>
+        <div class="field">
+          <label>SHA-1</label>
+          <input type="text" class="form-control text-mono" id="hash-sha1" readonly />
+        </div>
+        <div class="field">
+          <label>SHA-256</label>
+          <input type="text" class="form-control text-mono" id="hash-sha256" readonly />
+        </div>
+        <div class="field">
+          <label>SHA-512</label>
+          <textarea class="form-control text-mono" id="hash-sha512" rows="2" readonly></textarea>
+        </div>
+        <div class="status-alert" id="st-hash"></div>
+      </div>
+
+      <!-- JWT -->
+      <div class="tool-panel" id="panel-jwt">
+        <h2>🪪 JWT Decoder</h2>
+        <p class="panel-desc">Decode JSON Web Token untuk lihat header & payload. <strong>Tidak memvalidasi signature</strong>.</p>
+
+        <div class="field">
+          <label>JWT Token</label>
+          <textarea class="form-control" id="jwt-input" rows="5" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-jwt">Decode</button>
+
+        <div class="field mt-3">
+          <label>Header</label>
+          <textarea class="form-control text-mono" id="jwt-header" rows="4" readonly></textarea>
+        </div>
+        <div class="field">
+          <label>Payload</label>
+          <textarea class="form-control text-mono" id="jwt-payload" rows="6" readonly></textarea>
+        </div>
+        <div class="field">
+          <label>Signature (raw)</label>
+          <input type="text" class="form-control text-mono" id="jwt-sig" readonly />
+        </div>
+        <div class="status-alert" id="st-jwt"></div>
+      </div>
+
+      <!-- ASCII -->
+      <div class="tool-panel" id="panel-ascii">
+        <h2>🔡 ASCII / Unicode Codes</h2>
+        <p class="panel-desc">Konversi teks ke kode ASCII / Unicode (codepoint) dan sebaliknya.</p>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="asc-input" rows="4"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Mode</label>
+          <select class="form-control" id="asc-mode">
+            <option value="dec">Desimal (65)</option>
+            <option value="hex">Hex (0x41)</option>
+            <option value="unicode">Unicode escape (\\u0041)</option>
+          </select>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-asc-enc">Text → Codes</button>
+          <button class="btn" id="btn-asc-dec">Codes → Text</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="asc-output" rows="4" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="asc-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-asc"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🔐 Encoder & Decoder' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'base64');
+
+// ─── BASE64 (UTF-8 safe) ──────────────────────────────────────
+function b64Encode(s) {
+  return btoa(unescape(encodeURIComponent(s)));
+}
+function b64Decode(s) {
+  return decodeURIComponent(escape(atob(s.replace(/\s/g, ''))));
+}
+document.getElementById('btn-b64-enc').addEventListener('click', () => {
+  try {
+    document.getElementById('b64-output').value = b64Encode(document.getElementById('b64-input').value);
+    showStatus('st-b64', 'success', 'Berhasil di-encode.');
+  } catch (e) { showStatus('st-b64', 'error', e.message); }
+});
+document.getElementById('btn-b64-dec').addEventListener('click', () => {
+  try {
+    document.getElementById('b64-output').value = b64Decode(document.getElementById('b64-input').value);
+    showStatus('st-b64', 'success', 'Berhasil di-decode.');
+  } catch (e) { showStatus('st-b64', 'error', 'Bukan Base64 valid.'); }
+});
+document.getElementById('btn-b64-swap').addEventListener('click', () => {
+  const a = document.getElementById('b64-input');
+  const b = document.getElementById('b64-output');
+  [a.value, b.value] = [b.value, a.value];
+});
+document.getElementById('b64-copy').addEventListener('click', () => copyToClipboard(document.getElementById('b64-output').value, 'st-b64'));
+
+// ─── URL ──────────────────────────────────────────────────
+document.getElementById('btn-url-enc').addEventListener('click', () => {
+  document.getElementById('url-output').value = encodeURI(document.getElementById('url-input').value);
+});
+document.getElementById('btn-url-dec').addEventListener('click', () => {
+  try {
+    document.getElementById('url-output').value = decodeURIComponent(document.getElementById('url-input').value);
+  } catch (e) { showStatus('st-url', 'error', e.message); }
+});
+document.getElementById('btn-url-comp').addEventListener('click', () => {
+  document.getElementById('url-output').value = encodeURIComponent(document.getElementById('url-input').value);
+});
+document.getElementById('url-copy').addEventListener('click', () => copyToClipboard(document.getElementById('url-output').value, 'st-url'));
+
+// ─── HTML ENTITY ────────────────────────────────────────────
+const htmlEntities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;' };
+function htmlEncode(s) { return s.replace(/[&<>"'\/]/g, c => htmlEntities[c]); }
+function htmlDecode(s) {
+  const ta = document.createElement('textarea');
+  ta.innerHTML = s;
+  return ta.value;
+}
+document.getElementById('btn-html-enc').addEventListener('click', () => {
+  document.getElementById('html-output').value = htmlEncode(document.getElementById('html-input').value);
+});
+document.getElementById('btn-html-dec').addEventListener('click', () => {
+  document.getElementById('html-output').value = htmlDecode(document.getElementById('html-input').value);
+});
+document.getElementById('html-copy').addEventListener('click', () => copyToClipboard(document.getElementById('html-output').value, 'st-html'));
+
+// ─── HEX ──────────────────────────────────────────────────
+document.getElementById('btn-hex-enc').addEventListener('click', () => {
+  const sep = document.getElementById('hex-sep').value;
+  const t = document.getElementById('hex-input').value;
+  const enc = new TextEncoder().encode(t);
+  document.getElementById('hex-output').value = Array.from(enc).map(b => b.toString(16).padStart(2, '0')).join(sep);
+});
+document.getElementById('btn-hex-dec').addEventListener('click', () => {
+  try {
+    const raw = document.getElementById('hex-input').value.replace(/[^0-9a-fA-F]/g, '');
+    if (raw.length % 2 !== 0) throw new Error('Jumlah hex digit harus genap.');
+    const bytes = new Uint8Array(raw.match(/.{2}/g).map(h => parseInt(h, 16)));
+    document.getElementById('hex-output').value = new TextDecoder().decode(bytes);
+  } catch (e) { showStatus('st-hex', 'error', e.message); }
+});
+document.getElementById('hex-copy').addEventListener('click', () => copyToClipboard(document.getElementById('hex-output').value, 'st-hex'));
+
+// ─── BINARY ──────────────────────────────────────────────────
+document.getElementById('btn-bin-enc').addEventListener('click', () => {
+  const t = document.getElementById('bin-input').value;
+  const enc = new TextEncoder().encode(t);
+  document.getElementById('bin-output').value = Array.from(enc).map(b => b.toString(2).padStart(8, '0')).join(' ');
+});
+document.getElementById('btn-bin-dec').addEventListener('click', () => {
+  try {
+    const raw = document.getElementById('bin-input').value.replace(/[^01]/g, '');
+    if (raw.length % 8 !== 0) throw new Error('Jumlah bit harus kelipatan 8.');
+    const bytes = new Uint8Array(raw.match(/.{8}/g).map(b => parseInt(b, 2)));
+    document.getElementById('bin-output').value = new TextDecoder().decode(bytes);
+  } catch (e) { showStatus('st-bin', 'error', e.message); }
+});
+document.getElementById('bin-copy').addEventListener('click', () => copyToClipboard(document.getElementById('bin-output').value, 'st-bin'));
+
+// ─── MORSE ──────────────────────────────────────────────────
+const morseMap = {
+  'A':'.-','B':'-...','C':'-.-.','D':'-..','E':'.','F':'..-.','G':'--.','H':'....','I':'..','J':'.---','K':'-.-','L':'.-..','M':'--',
+  'N':'-.','O':'---','P':'.--.','Q':'--.-','R':'.-.','S':'...','T':'-','U':'..-','V':'...-','W':'.--','X':'-..-','Y':'-.--','Z':'--..',
+  '0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.',
+  '.':'.-.-.-',',':'--..--','?':'..--..',"'":'.----.','!':'-.-.--','/':'-..-.','(':'-.--.',')':'-.--.-','&':'.-...',':':'---...',
+  ';':'-.-.-.','=':'-...-','+':'.-.-.','-':'-....-','_':'..--.-','"':'.-..-.','$':'...-..-','@':'.--.-.'
+};
+const morseRev = Object.fromEntries(Object.entries(morseMap).map(([k, v]) => [v, k]));
+
+document.getElementById('btn-ms-enc').addEventListener('click', () => {
+  const t = document.getElementById('ms-input').value.toUpperCase();
+  const out = t.split('').map(c => {
+    if (c === ' ') return '/';
+    return morseMap[c] || '';
+  }).filter(Boolean).join(' ');
+  document.getElementById('ms-output').value = out;
+});
+document.getElementById('btn-ms-dec').addEventListener('click', () => {
+  const t = document.getElementById('ms-input').value.trim();
+  const words = t.split(/\s*\/\s*/);
+  const out = words.map(w => w.split(/\s+/).map(m => morseRev[m] || '').join('')).join(' ');
+  document.getElementById('ms-output').value = out;
+});
+document.getElementById('ms-copy').addEventListener('click', () => copyToClipboard(document.getElementById('ms-output').value, 'st-ms'));
+
+// ─── ROT13 / CAESAR ────────────────────────────────────────
+function caesar(str, shift) {
+  return str.replace(/[a-zA-Z]/g, c => {
+    const base = c <= 'Z' ? 65 : 97;
+    return String.fromCharCode(((c.charCodeAt(0) - base + shift) % 26 + 26) % 26 + base);
+  });
+}
+const rotRange = document.getElementById('rot-shift');
+const rotLabel = document.getElementById('rot-shift-val');
+rotRange.addEventListener('input', () => rotLabel.textContent = rotRange.value);
+document.getElementById('btn-rot-enc').addEventListener('click', () => {
+  const s = parseInt(rotRange.value);
+  document.getElementById('rot-output').value = caesar(document.getElementById('rot-input').value, s);
+});
+document.getElementById('btn-rot-dec').addEventListener('click', () => {
+  const s = parseInt(rotRange.value);
+  document.getElementById('rot-output').value = caesar(document.getElementById('rot-input').value, -s);
+});
+document.getElementById('rot-copy').addEventListener('click', () => copyToClipboard(document.getElementById('rot-output').value, 'st-rot'));
+
+// ─── HASH ──────────────────────────────────────────────────
+let hashFile = null;
+setupDropzone('dz-hash', 'file-hash', files => {
+  hashFile = files[0];
+  document.getElementById('list-hash').innerHTML = `
+    <div class="file-item"><span>📎</span>
+      <span class="file-name">${hashFile.name}</span>
+      <span class="file-meta">${formatBytes(hashFile.size)}</span>
+      <button class="btn-remove" id="hash-clear-file">✕</button>
+    </div>`;
+  document.getElementById('hash-clear-file').addEventListener('click', () => {
+    hashFile = null;
+    document.getElementById('list-hash').innerHTML = '';
+  });
+});
+
+async function sha(algo, data) {
+  const buf = await crypto.subtle.digest(algo, data);
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+document.getElementById('btn-hash').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-hash');
+  btn.disabled = true;
+  hideStatus('st-hash');
+  try {
+    let bytes;
+    if (hashFile) {
+      const ab = await hashFile.arrayBuffer();
+      bytes = new Uint8Array(ab);
+    } else {
+      bytes = new TextEncoder().encode(document.getElementById('hash-input').value);
+    }
+    // MD5 via crypto-js
+    const wa = CryptoJS.lib.WordArray.create(bytes);
+    document.getElementById('hash-md5').value = CryptoJS.MD5(wa).toString();
+    document.getElementById('hash-sha1').value = await sha('SHA-1', bytes);
+    document.getElementById('hash-sha256').value = await sha('SHA-256', bytes);
+    document.getElementById('hash-sha512').value = await sha('SHA-512', bytes);
+    showStatus('st-hash', 'success', 'Hash berhasil di-generate.');
+  } catch (e) {
+    showStatus('st-hash', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─── JWT ──────────────────────────────────────────────────
+function b64UrlDecode(s) {
+  s = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (s.length % 4) s += '=';
+  return decodeURIComponent(escape(atob(s)));
+}
+
+document.getElementById('btn-jwt').addEventListener('click', () => {
+  hideStatus('st-jwt');
+  try {
+    const token = document.getElementById('jwt-input').value.trim();
+    const parts = token.split('.');
+    if (parts.length !== 3) throw new Error('Format JWT tidak valid (harus 3 bagian).');
+    const header = JSON.parse(b64UrlDecode(parts[0]));
+    const payload = JSON.parse(b64UrlDecode(parts[1]));
+    document.getElementById('jwt-header').value = JSON.stringify(header, null, 2);
+    document.getElementById('jwt-payload').value = JSON.stringify(payload, null, 2);
+    document.getElementById('jwt-sig').value = parts[2];
+    let info = '';
+    if (payload.exp) {
+      const expDate = new Date(payload.exp * 1000);
+      const expired = expDate < new Date();
+      info = `Expired: ${expDate.toLocaleString()} ${expired ? '(SUDAH EXPIRED)' : '(masih valid)'}`;
+    }
+    showStatus('st-jwt', 'success', 'Token berhasil di-decode. ' + info);
+  } catch (e) {
+    showStatus('st-jwt', 'error', e.message);
+  }
+});
+
+// ─── ASCII ──────────────────────────────────────────────────
+document.getElementById('btn-asc-enc').addEventListener('click', () => {
+  const mode = document.getElementById('asc-mode').value;
+  const t = document.getElementById('asc-input').value;
+  const codes = [...t].map(c => c.codePointAt(0));
+  let out;
+  if (mode === 'dec') out = codes.join(' ');
+  else if (mode === 'hex') out = codes.map(c => '0x' + c.toString(16).toUpperCase()).join(' ');
+  else out = codes.map(c => '\\u' + c.toString(16).toUpperCase().padStart(4, '0')).join('');
+  document.getElementById('asc-output').value = out;
+});
+
+document.getElementById('btn-asc-dec').addEventListener('click', () => {
+  try {
+    const mode = document.getElementById('asc-mode').value;
+    const t = document.getElementById('asc-input').value;
+    let codes;
+    if (mode === 'unicode') {
+      codes = [...t.matchAll(/\\u([0-9a-fA-F]{4})/g)].map(m => parseInt(m[1], 16));
+    } else if (mode === 'hex') {
+      codes = t.match(/0?x?[0-9a-fA-F]+/gi).map(h => parseInt(h.replace(/^0?x/i, ''), 16));
+    } else {
+      codes = t.match(/\d+/g).map(Number);
+    }
+    document.getElementById('asc-output').value = codes.map(c => String.fromCodePoint(c)).join('');
+  } catch (e) { showStatus('st-asc', 'error', 'Format tidak valid.'); }
+});
+
+document.getElementById('asc-copy').addEventListener('click', () => copyToClipboard(document.getElementById('asc-output').value, 'st-asc'));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Konversi File — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🔄 <span class="highlight">Konversi File</span></h1>
+    <p>Ubah format dokumen, gambar, dan data — 12 konverter siap pakai dalam satu halaman.</p>
+
+    <div class="filter-group">
+      <button class="filter-btn active" data-cat="semua">Semua</button>
+      <button class="filter-btn" data-cat="dokumen">📄 Dokumen</button>
+      <button class="filter-btn" data-cat="gambar">🖼️ Gambar</button>
+      <button class="filter-btn" data-cat="spreadsheet">📊 Spreadsheet</button>
+      <button class="filter-btn" data-cat="teks">📝 Teks</button>
+    </div>
+  </section>
+
+  <div class="grid" id="toolsGrid"></div>
+
+  <div id="ftr"></div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <button class="btn-close" id="btnCloseModal" aria-label="Tutup">✕</button>
+
+    <div class="modal-header">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div>
+        <h2 id="modalTitle"></h2>
+      </div>
+    </div>
+    <p class="modal-desc" id="modalDesc"></p>
+
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="fileInput" />
+      <div class="drop-icon">☁️</div>
+      <h3>Pilih atau Tarik File Kesini</h3>
+      <p id="acceptHint">Format didukung: ...</p>
+    </div>
+
+    <div class="file-list" id="fileList" style="display:none"></div>
+
+    <div class="field" id="formatWrap">
+      <label>Target Format Keluaran</label>
+      <select class="form-control" id="targetFormat"></select>
+    </div>
+
+    <button class="btn btn-primary btn-block" id="btnConvert">
+      Mulai Konversi File
+    </button>
+
+    <div class="progress-container" id="progressWrap" style="display:none">
+      <div class="progress-bar-bg">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressLabel">Memproses...</div>
+    </div>
+
+    <div class="status-alert" id="statusMsg"></div>
+  </div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🔄 Konversi File' });
+injectFooter('ftr');
+
+const tools = [
+  { id: 'pdf-to-word', name: 'PDF → Word', desc: 'Ubah PDF menjadi file Word (.rtf) yang dapat diedit.', icon: '📄', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'dokumen', from: 'PDF', to: 'DOCX', accept: '.pdf', targets: ['docx'] },
+  { id: 'word-to-pdf', name: 'Word → PDF', desc: 'Konversi file Word (.docx) menjadi PDF siap cetak.', icon: '📋', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'dokumen', from: 'DOCX', to: 'PDF', accept: '.docx', targets: ['pdf'] },
+  { id: 'pdf-to-jpg', name: 'PDF → Gambar', desc: 'Ekstrak halaman PDF menjadi JPG atau PNG.', icon: '🖼️', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'gambar', from: 'PDF', to: 'JPG / PNG', accept: '.pdf', targets: ['jpg', 'png'] },
+  { id: 'img-to-pdf', name: 'Gambar → PDF', desc: 'Konversi gambar JPG, PNG, WEBP menjadi PDF.', icon: '🗂️', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'dokumen', from: 'JPG / PNG', to: 'PDF', accept: '.jpg,.jpeg,.png,.webp,.gif,.bmp', targets: ['pdf'] },
+  { id: 'xlsx-to-csv', name: 'Excel → CSV', desc: 'Konversi Excel ke CSV / JSON / HTML.', icon: '📊', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'spreadsheet', from: 'XLSX', to: 'CSV', accept: '.xlsx,.xls', targets: ['csv', 'json', 'html'] },
+  { id: 'csv-to-xlsx', name: 'CSV → Excel', desc: 'Ubah CSV menjadi spreadsheet Excel (.xlsx).', icon: '📈', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'spreadsheet', from: 'CSV', to: 'XLSX', accept: '.csv', targets: ['xlsx'] },
+  { id: 'img-convert', name: 'Konversi Gambar', desc: 'Ubah format JPG / PNG / WEBP.', icon: '🎨', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'gambar', from: 'JPG/PNG', to: 'Format Lain', accept: '.jpg,.jpeg,.png,.webp,.bmp,.gif', targets: ['jpg', 'png', 'webp'] },
+  { id: 'txt-to-pdf', name: 'Teks → PDF', desc: 'Konversi file teks (.txt/.md) menjadi PDF.', icon: '📝', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'teks', from: 'TXT', to: 'PDF', accept: '.txt,.md', targets: ['pdf'] },
+  { id: 'json-to-csv', name: 'JSON → CSV', desc: 'Ubah data JSON menjadi CSV atau Excel.', icon: '🔄', iconBg: 'rgba(16, 185, 129, 0.15)', cat: 'teks', from: 'JSON', to: 'CSV / XLSX', accept: '.json', targets: ['csv', 'xlsx'] },
+  { id: 'word-to-txt', name: 'Word → Teks', desc: 'Ekstrak teks murni dari dokumen Word.', icon: '📃', iconBg: 'rgba(59, 130, 246, 0.15)', cat: 'teks', from: 'DOCX', to: 'TXT', accept: '.docx', targets: ['txt'] },
+  { id: 'pdf-to-txt', name: 'PDF → Teks', desc: 'Ekstrak teks dari PDF menjadi file teks.', icon: '🔍', iconBg: 'rgba(239, 68, 68, 0.15)', cat: 'teks', from: 'PDF', to: 'TXT', accept: '.pdf', targets: ['txt'] },
+  { id: 'xlsx-to-pdf', name: 'Excel → PDF', desc: 'Simpan spreadsheet Excel sebagai PDF.', icon: '📉', iconBg: 'rgba(245, 158, 11, 0.15)', cat: 'dokumen', from: 'XLSX', to: 'PDF', accept: '.xlsx,.xls', targets: ['pdf'] }
+];
+
+let activeCat = 'semua';
+let currentTool = null;
+let selectedFile = null;
+
+function renderCards() {
+  const grid = document.getElementById('toolsGrid');
+  const filtered = activeCat === 'semua' ? tools : tools.filter(t => t.cat === activeCat);
+  grid.innerHTML = filtered.map(t => `
+    <div class="card" data-id="${t.id}">
+      <div class="card-icon" style="background:${t.iconBg}">${t.icon}</div>
+      <h3>${t.name}</h3>
+      <p>${t.desc}</p>
+      <div class="card-tags">
+        <span class="tag tag-from">${t.from}</span>
+        <span class="tag-arrow">➔</span>
+        <span class="tag tag-to">${t.to}</span>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.card').forEach(c => {
+    c.addEventListener('click', () => openModal(c.dataset.id));
+  });
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    renderCards();
+  });
+});
+
+renderCards();
+
+function openModal(id) {
+  currentTool = tools.find(t => t.id === id);
+  selectedFile = null;
+  document.getElementById('modalIcon').textContent = currentTool.icon;
+  document.getElementById('modalTitle').textContent = currentTool.name;
+  document.getElementById('modalDesc').textContent = currentTool.desc;
+  const inp = document.getElementById('fileInput');
+  inp.accept = currentTool.accept;
+  inp.value = '';
+  document.getElementById('acceptHint').textContent = `Mendukung format: ${currentTool.accept.toUpperCase().replace(/\./g, '')}`;
+  document.getElementById('fileList').style.display = 'none';
+  document.getElementById('fileList').innerHTML = '';
+  hideProgress('progressWrap');
+  hideStatus('statusMsg');
+  document.getElementById('btnConvert').disabled = true;
+
+  const sel = document.getElementById('targetFormat');
+  sel.innerHTML = currentTool.targets.map(t => `<option value="${t}">${t.toUpperCase()}</option>`).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('btnCloseModal').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+setupDropzone('dropzone', 'fileInput', files => {
+  selectedFile = files[0];
+  const list = document.getElementById('fileList');
+  list.style.display = 'flex';
+  list.innerHTML = `
+    <div class="file-item">
+      <span>📎</span>
+      <span class="file-name">${selectedFile.name}</span>
+      <span class="file-meta">${formatBytes(selectedFile.size)}</span>
+    </div>`;
+  document.getElementById('btnConvert').disabled = false;
+  hideStatus('statusMsg');
+});
+
+document.getElementById('btnConvert').addEventListener('click', startConvert);
+
+function progress(pct, label) { showProgress('progressWrap', 'progressFill', 'progressLabel', pct, label); }
+
+async function startConvert() {
+  if (!selectedFile || !currentTool) return;
+  const target = document.getElementById('targetFormat').value;
+  const btn = document.getElementById('btnConvert');
+  btn.disabled = true;
+  hideStatus('statusMsg');
+
+  try {
+    switch (currentTool.id) {
+      case 'pdf-to-jpg':  await pdfToImage(selectedFile, target); break;
+      case 'img-to-pdf':  await imageToPdf(selectedFile); break;
+      case 'word-to-pdf': await wordToPdf(selectedFile); break;
+      case 'pdf-to-word': await pdfToWord(selectedFile); break;
+      case 'xlsx-to-csv': await xlsxConvert(selectedFile, target); break;
+      case 'csv-to-xlsx': await csvToXlsx(selectedFile); break;
+      case 'img-convert': await imgConvert(selectedFile, target); break;
+      case 'txt-to-pdf':  await txtToPdf(selectedFile); break;
+      case 'json-to-csv': await jsonConvert(selectedFile, target); break;
+      case 'word-to-txt': await wordToTxt(selectedFile); break;
+      case 'pdf-to-txt':  await pdfToTxt(selectedFile); break;
+      case 'xlsx-to-pdf': await xlsxToPdf(selectedFile); break;
+      default: showStatus('statusMsg', 'error', 'Konverter tidak ditemukan.');
+    }
+  } catch (err) {
+    console.error(err);
+    showStatus('statusMsg', 'error', 'Gagal: ' + err.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// PDF → IMAGE
+async function pdfToImage(file, fmt) {
+  progress(10, 'Memuat PDF...');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  progress(30, `PDF dimuat — ${pdf.numPages} halaman`);
+  const mimeType = fmt === 'png' ? 'image/png' : 'image/jpeg';
+  const ext = fmt === 'png' ? 'png' : 'jpg';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const vp = page.getViewport({ scale: 2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = vp.width; canvas.height = vp.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    const blob = await new Promise(res => canvas.toBlob(res, mimeType, 0.92));
+    downloadBlob(blob, `${baseName(file)}_hal${i}.${ext}`);
+    progress(30 + (i / pdf.numPages) * 70, `Halaman ${i}/${pdf.numPages} selesai`);
+  }
+  showStatus('statusMsg', 'success', `${pdf.numPages} gambar berhasil diunduh!`);
+}
+
+// IMG → PDF
+async function imageToPdf(file) {
+  progress(20, 'Membaca gambar...');
+  const { jsPDF } = window.jspdf;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  progress(60, 'Membuat PDF...');
+  const pdf = new jsPDF({ orientation: img.width > img.height ? 'l' : 'p', unit: 'px', format: [img.width, img.height] });
+  pdf.addImage(img, file.type.includes('png') ? 'PNG' : 'JPEG', 0, 0, img.width, img.height);
+  progress(90, 'Menyimpan...');
+  pdf.save(baseName(file) + '.pdf');
+  showStatus('statusMsg', 'success', 'PDF berhasil dibuat!');
+  URL.revokeObjectURL(url);
+}
+
+// WORD → PDF
+async function wordToPdf(file) {
+  progress(20, 'Membaca dokumen Word...');
+  const ab = await file.arrayBuffer();
+  const result = await mammoth.convertToHtml({ arrayBuffer: ab });
+  progress(55, 'Mengkonversi ke PDF...');
+  const { jsPDF } = window.jspdf;
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;padding:60px;font-family:Georgia,serif;font-size:13px;line-height:1.7;color:#111;background:#fff;';
+  container.innerHTML = result.value;
+  document.body.appendChild(container);
+  progress(70, 'Rendering...');
+  const canvas = await html2canvas(container, { scale: 1.5, useCORS: true });
+  document.body.removeChild(container);
+  const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, canvas.width, canvas.height);
+  progress(95, 'Menyimpan...');
+  pdf.save(baseName(file) + '.pdf');
+  showStatus('statusMsg', 'success', 'PDF berhasil dibuat!');
+}
+
+// PDF → WORD (RTF)
+async function pdfToWord(file) {
+  progress(10, 'Membaca PDF...');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(s => s.str).join(' ') + '\n\n';
+    progress(10 + (i / pdf.numPages) * 70, `Mengekstrak halaman ${i}/${pdf.numPages}`);
+  }
+  const rtf = `{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\f0\\fs24 ${text.replace(/\n/g, '\\par ')}}`;
+  downloadBlob(new Blob([rtf], { type: 'application/rtf' }), baseName(file) + '.rtf');
+  showStatus('statusMsg', 'success', 'File Word (.rtf) berhasil diunduh! Buka dengan Microsoft Word.');
+}
+
+// XLSX → CSV / JSON / HTML
+async function xlsxConvert(file, fmt) {
+  progress(30, 'Membaca Excel...');
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab);
+  progress(60, 'Mengkonversi...');
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  let blob, ext;
+  if (fmt === 'csv') {
+    blob = new Blob([XLSX.utils.sheet_to_csv(ws)], { type: 'text/csv' });
+    ext = 'csv';
+  } else if (fmt === 'json') {
+    blob = new Blob([JSON.stringify(XLSX.utils.sheet_to_json(ws), null, 2)], { type: 'application/json' });
+    ext = 'json';
+  } else {
+    blob = new Blob([XLSX.utils.sheet_to_html(ws)], { type: 'text/html' });
+    ext = 'html';
+  }
+  progress(90, 'Menyimpan...');
+  downloadBlob(blob, baseName(file) + '.' + ext);
+  showStatus('statusMsg', 'success', `File ${ext.toUpperCase()} berhasil diunduh!`);
+}
+
+// CSV → XLSX
+async function csvToXlsx(file) {
+  progress(30, 'Membaca CSV...');
+  const text = await file.text();
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(text.trim().split('\n').map(r => r.split(',')));
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  progress(75, 'Membuat Excel...');
+  XLSX.writeFile(wb, baseName(file) + '.xlsx');
+  showStatus('statusMsg', 'success', 'File Excel berhasil diunduh!');
+}
+
+// IMAGE CONVERT
+async function imgConvert(file, fmt) {
+  progress(20, 'Membaca gambar...');
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+  progress(60, 'Mengkonversi...');
+  const canvas = document.createElement('canvas');
+  canvas.width = img.width; canvas.height = img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  const mimeMap = { jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+  const blob = await new Promise(res => canvas.toBlob(res, mimeMap[fmt], 0.92));
+  progress(90, 'Menyimpan...');
+  downloadBlob(blob, baseName(file) + '.' + fmt);
+  showStatus('statusMsg', 'success', `Gambar berhasil dikonversi ke ${fmt.toUpperCase()}!`);
+  URL.revokeObjectURL(url);
+}
+
+// TXT → PDF
+async function txtToPdf(file) {
+  progress(20, 'Membaca teks...');
+  const text = await file.text();
+  const { jsPDF } = window.jspdf;
+  progress(50, 'Membuat PDF...');
+  const pdf = new jsPDF();
+  const lines = pdf.splitTextToSize(text, 180);
+  let y = 20;
+  lines.forEach(line => {
+    if (y > 280) { pdf.addPage(); y = 20; }
+    pdf.text(line, 15, y);
+    y += 7;
+  });
+  progress(90, 'Menyimpan...');
+  pdf.save(baseName(file) + '.pdf');
+  showStatus('statusMsg', 'success', 'PDF berhasil dibuat!');
+}
+
+// JSON → CSV / XLSX
+async function jsonConvert(file, fmt) {
+  progress(25, 'Membaca JSON...');
+  const text = await file.text();
+  let data = JSON.parse(text);
+  if (!Array.isArray(data)) data = [data];
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.json_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  progress(70, 'Mengkonversi...');
+  if (fmt === 'csv') {
+    downloadBlob(new Blob([XLSX.utils.sheet_to_csv(ws)], { type: 'text/csv' }), baseName(file) + '.csv');
+  } else {
+    XLSX.writeFile(wb, baseName(file) + '.xlsx');
+  }
+  showStatus('statusMsg', 'success', `File ${fmt.toUpperCase()} berhasil diunduh!`);
+}
+
+// WORD → TXT
+async function wordToTxt(file) {
+  progress(30, 'Membaca Word...');
+  const ab = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: ab });
+  progress(80, 'Menyimpan...');
+  downloadBlob(new Blob([result.value], { type: 'text/plain' }), baseName(file) + '.txt');
+  showStatus('statusMsg', 'success', 'Teks berhasil diekstrak!');
+}
+
+// PDF → TXT
+async function pdfToTxt(file) {
+  progress(10, 'Membaca PDF...');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const ab = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(s => s.str).join(' ') + '\n\n';
+    progress(10 + (i / pdf.numPages) * 80, `Halaman ${i}/${pdf.numPages}`);
+  }
+  downloadBlob(new Blob([text], { type: 'text/plain' }), baseName(file) + '.txt');
+  showStatus('statusMsg', 'success', 'Teks berhasil diekstrak!');
+}
+
+// XLSX → PDF
+async function xlsxToPdf(file) {
+  progress(20, 'Membaca Excel...');
+  const ab = await file.arrayBuffer();
+  const wb = XLSX.read(ab);
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const html = XLSX.utils.sheet_to_html(ws);
+  progress(45, 'Rendering...');
+  const container = document.createElement('div');
+  container.style.cssText = 'position:fixed;left:-9999px;top:0;padding:40px;background:#fff;color:#000;font-family:Arial,sans-serif;font-size:11px;';
+  container.innerHTML = `<style>table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccc;padding:4px 8px}</style>${html}`;
+  document.body.appendChild(container);
+  const canvas = await html2canvas(container, { scale: 1.5 });
+  document.body.removeChild(container);
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({ unit: 'px', format: [canvas.width, canvas.height] });
+  pdf.addImage(canvas.toDataURL('image/jpeg', 0.9), 'JPEG', 0, 0, canvas.width, canvas.height);
+  progress(95, 'Menyimpan...');
+  pdf.save(baseName(file) + '.pdf');
+  showStatus('statusMsg', 'success', 'PDF berhasil dibuat!');
+}
+</script>
+
+</body>
+</html>
