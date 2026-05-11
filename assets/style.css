@@ -44,6 +44,10 @@ body {
   font-family: var(--font-sans);
   min-height: 100vh;
   line-height: 1.6;
+
+  /* Prevent horizontal swipe on small screens */
+  overflow-x: hidden;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -767,9 +771,16 @@ input[type="color"].form-control {
 
 .preview-wrap img, .preview-wrap canvas {
   max-width: 100%;
+  height: auto;
   max-height: 360px;
   border-radius: 8px;
   background: #fff;
+}
+
+/* General safety for any other images/canvas that might overflow */
+img, canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 .preview-wrap .preview-meta {
