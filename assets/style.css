@@ -615,8 +615,8 @@ input[type="color"].form-control {
 }
 
 .dropzone .drop-icon { font-size: 2.6rem; margin-bottom: 12px; }
-.dropzone h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
-.dropzone p { color: var(--text-muted); font-size: 0.85rem; }
+.dropzone h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; word-wrap: break-word; }
+.dropzone p { color: var(--text-muted); font-size: 0.85rem; word-wrap: break-word; }
 
 .file-list {
   display: flex;
@@ -992,21 +992,89 @@ footer .dev-credit span { color: var(--primary); }
   }
 
   .tool-sidebar {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    height: auto;
     position: static;
-    padding: 12px;
   }
 
   .tool-nav {
-    flex-direction: row;
-    overflow-x: auto;
-    gap: 6px;
-    padding-bottom: 4px;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 110px);
+    gap: 14px;
+    padding: 20px 0;
+    justify-content: center;
   }
 
   .tool-nav button {
-    white-space: nowrap;
-    flex-shrink: 0;
+    white-space: normal;
+    text-align: center;
+    padding: 14px 8px;
+    font-size: 0.82rem;
+    width: 110px;
+    height: 75px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 0.5px solid rgba(255, 255, 255, 0.06);
+    color: var(--text-muted);
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+    font-weight: 500;
+    backdrop-filter: blur(20px);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.05),
+      0 2px 4px rgba(0, 0, 0, 0.05),
+      0 4px 8px rgba(0, 0, 0, 0.03);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .tool-nav button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .tool-nav button:hover {
+    background: rgba(59, 130, 246, 0.04);
+    border-color: rgba(59, 130, 246, 0.12);
+    color: var(--text-main);
+    transform: translateY(-1px);
+    box-shadow:
+      0 2px 4px rgba(0, 0, 0, 0.08),
+      0 4px 8px rgba(0, 0, 0, 0.06),
+      0 8px 16px rgba(59, 130, 246, 0.08);
+  }
+
+  .tool-nav button:hover::before {
+    opacity: 1;
+  }
+
+  .tool-nav button.active {
+    background: rgba(59, 130, 246, 0.06);
+    border-color: rgba(59, 130, 246, 0.18);
+    color: var(--primary);
+    font-weight: 600;
+    box-shadow:
+      0 2px 6px rgba(59, 130, 246, 0.15),
+      0 4px 12px rgba(59, 130, 246, 0.12),
+      0 8px 24px rgba(59, 130, 246, 0.08);
+  }
+
+  .tool-nav button .nav-emoji {
+    font-size: 1.3rem;
+    margin-bottom: 2px;
+    filter: opacity(0.8);
   }
 
   .tool-sidebar h4 { display: none; }
@@ -1045,15 +1113,59 @@ footer .dev-credit span { color: var(--primary); }
 }
 
 @media (max-width: 480px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  .container {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .modal-overlay {
+    padding: 8px;
+  }
+
+  .modal {
+    max-width: 100vw;
+    margin: 0;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .modal h2 {
+    font-size: 1.4rem;
+  }
+
   .hero h1, .hero-page h1 { font-size: 1.9rem; }
-  .tool-content { padding: 16px; }
+  .tool-content {
+    padding: 16px;
+    min-height: auto;
+    overflow-x: hidden;
+  }
   .stat-card .stat-value { font-size: 1.3rem; }
 
-  /* Dropzone (seret file) */
-  .dropzone { padding: 22px 12px; }
-  .dropzone .drop-icon { font-size: 2.1rem; margin-bottom: 8px; }
-  .dropzone h3 { font-size: 1rem; margin-bottom: 4px; }
-  .dropzone p { font-size: 0.82rem; }
+  /* Grid responsive untuk mobile */
+  .grid { grid-template-columns: 1fr; gap: 12px; }
+  .cat-grid { grid-template-columns: 1fr; gap: 12px; }
+
+  /* Hero page padding untuk mobile */
+  .hero-page { padding: 24px 0 20px; }
+
+  /* Filter group untuk mobile */
+  .filter-group { gap: 8px; margin: 20px 0 24px; }
+  .filter-btn { white-space: nowrap; flex-shrink: 0; }
+  .filter-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* Dropzone (seret file) - compact untuk mobile */
+  .dropzone {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+  }
+  .dropzone .drop-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .dropzone h3 { font-size: 0.95rem; margin-bottom: 4px; }
+  .dropzone p { font-size: 0.8rem; }
 
   /* Tombol-tombol di atas (tool-nav + filter) */
   .tool-nav button { padding: 8px 10px; font-size: 0.88rem; gap: 8px; }
