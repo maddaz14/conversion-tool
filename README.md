@@ -1,82 +1,96 @@
+<!-- prettier-ignore -->
 # Gondrong STIES — Tools Online 🚀
 
-Kumpulan **60+ tools gratis** dari Gondrong STIES yang berjalan 100% di browser. Tanpa upload ke server, privasi terjamin.
+**60+ tools gratis** yang berjalan **100% di browser**.  
+✅ Tanpa upload ke server  
+✅ Privasi aman  
+✅ Cepat & gratis buat kebutuhan produktivitas & akademik
 
-## 🧰 Daftar Fitur (8 Kategori)
+---
 
-| Kategori | Sub-Tools |
-|----------|-----------|
-| 🔄 **Konversi File** | PDF↔Word, PDF↔Image, PDF↔TXT, Excel↔CSV/JSON/HTML/PDF, Image format, CSV→XLSX, JSON→CSV/XLSX, Word↔TXT, TXT→PDF, Image→PDF |
-| 🖼️ **Gambar Tools** | Upscale (2x/3x/4x), Resize, Compress, Crop, Rotate & Flip, Filter (brightness/contrast/saturate/grayscale/sepia/blur), Watermark teks, Format converter |
-| 📄 **PDF Tools** | Merge PDF, Split PDF (custom range), Rotate halaman, Watermark teks, Reorder halaman, Compress PDF |
-| 📝 **Teks Tools** | Word/character counter, Case converter (10 mode), Sort lines (7 mode), Remove duplicates, Find & Replace (regex), Reverse text, Slugify, Lorem Ipsum |
-| 🔐 **Encoder/Decoder** | Base64, URL encode, HTML entity, Hex↔Text, Binary↔Text, Morse code, ROT13/Caesar, Hash (MD5/SHA-1/SHA-256/SHA-512), JWT decoder, ASCII codes |
-| 🎲 **Generator** | QR Code (Text/WiFi/Email/SMS/Phone), Password (custom rules), UUID v4, Random number, Color palette (5 mode), Fake data (Indonesian) |
-| 📐 **Unit Converter** | Panjang, Berat, Suhu, Luas, Volume, Waktu, Kecepatan, Data Storage, BMI calculator, Age calculator |
-| 💻 **Developer Tools** | JSON formatter/minifier/validator, XML formatter, Regex tester (live highlight), CSS/HTML/JS minifier, Color converter (HEX/RGB/HSL), URL parser, Text diff |
+## ✨ Demo / Live
+
+Buka tools langsung di Vercel:  
+**https://conversion-tool-puce.vercel.app/**
+
+> Semua konversi & proses dilakukan di sisi klien (browser).
+
+---
+
+## 🧰 Kategori Tools (8 Kelompok)
+
+- 🔄 **Konversi File** (PDF↔Word, PDF↔Image, PDF↔TXT, Excel↔CSV/JSON/HTML/PDF, dll.)
+- 🖼️ **Gambar Tools** (Upscale, Resize, Compress, Crop, Rotate/Flip, Filter, Watermark)
+- 📄 **PDF Tools** (Merge, Split range, Rotate halaman, Watermark, Reorder, Compress)
+- 📝 **Teks Tools** (Word/character counter, Case converter, Sort lines, Remove duplicates, Regex Find/Replace, Reverse text, Slugify, Lorem Ipsum)
+- 🔐 **Encoder/Decoder** (Base64, URL Encode, HTML entity, Hex↔Text, Binary↔Text, Morse code, ROT13/Caesar, Hash MD5/SHA-1/SHA-256/SHA-512, JWT decoder, ASCII codes)
+- 🎲 **Generator** (QR Code, Password, UUID v4, Random number, Color palette, Fake data)
+- 📐 **Unit Converter** (Panjang, Berat, Suhu, Luas, Volume, Waktu, Kecepatan, Data Storage, BMI calculator, Age calculator)
+- 💻 **Developer Tools** (JSON formatter/minifier/validator, XML formatter, Regex tester, CSS/HTML/JS minifier, Color converter, URL parser, Text diff)
+
+---
 
 ## 🚀 Cara Pakai
 
-Buka [https://your-vercel-domain.vercel.app](https://your-vercel-domain.vercel.app) — semua tools tersedia langsung di browser.
+1. Masuk ke **link Vercel** (lihat bagian *Live*).
+2. Pilih kategori → pilih tool.
+3. Semua input diproses di browser, lalu file hasil bisa langsung diunduh.
 
-## 🛠️ Teknologi
+---
 
-Semua proses berjalan di sisi klien:
-- **PDF.js** — Membaca dan merender PDF
-- **pdf-lib** — Modifikasi PDF (merge, split, rotate, watermark)
-- **XLSX (SheetJS)** — Membaca/menulis Excel dan CSV
-- **Mammoth.js** — Konversi Word ke HTML/teks
-- **jsPDF + html2canvas** — Membuat file PDF
-- **crypto-js** — MD5 hashing
-- **QRCode.js** — QR Code generator
-- **Web Crypto API** — SHA-1/256/512 hashing
-- **Canvas API** — Image processing (resize, filter, watermark, crop, rotate)
+## 🔒 Privasi
+
+**Semua proses berjalan di browser pengguna** — tidak ada data yang dikirim ke server. File yang Anda pilih tetap berada di perangkat Anda.
+
+---
+
+## 🧠 Teknologi (Client-side)
+
+- **PDF.js** — membaca dan merender PDF
+- **pdf-lib** — modifikasi PDF (merge, split, rotate, watermark)
+- **XLSX (SheetJS)** — membaca/menulis Excel dan CSV
+- **Mammoth.js** — konversi Word ke HTML/teks
+- **jsPDF + html2canvas** — membuat file PDF
+- **crypto-js** — hashing MD5
+- **QRCode.js** — generator QR
+- **Web Crypto API** — hashing SHA-1/256/512
+- **Canvas API** — pemrosesan gambar
+
+---
 
 ## 📦 Struktur File
 
-```
+```txt
 conversion-tool/
-├── index.html              # Landing page (kategori)
+├── index.html
 ├── assets/
-│   ├── style.css           # Shared design tokens & components
-│   └── common.js           # Shared utilities
+│   ├── style.css
+│   └── common.js
 ├── pages/
-│   ├── file-converter.html # 12 konverter format
-│   ├── image.html          # 8 image tools
-│   ├── pdf.html            # 6 PDF tools
-│   ├── text.html           # 8 text tools
-│   ├── encoder.html        # 10 encoder/decoder
-│   ├── generator.html      # 6 generators
-│   ├── unit.html           # 10 unit converters
-│   └── developer.html      # 7 developer tools
+│   ├── file-converter.html
+│   ├── image.html
+│   ├── pdf.html
+│   ├── text.html
+│   ├── encoder.html
+│   ├── generator.html
+│   ├── unit.html
+│   └── developer.html
 ├── vercel.json
 ├── package.json
 └── README.md
 ```
 
+---
+
 ## 🚀 Deploy ke Vercel
 
-### Cara 1: Via GitHub
-1. Push folder ini ke repository GitHub
-2. Buka [vercel.com](https://vercel.com)
-3. Klik "New Project" → Import dari GitHub
-4. Pilih repo → Deploy
+### Via GitHub
+1. Push perubahan ke GitHub
+2. Buka https://vercel.com
+3. Klik **New Project** → **Import** dari GitHub
+4. Deploy
 
-### Cara 2: Drag & Drop
-1. Buka [vercel.com/new](https://vercel.com/new)
-2. Drag & drop folder ke halaman tersebut
-3. Deploy
-
-### Cara 3: Lokal Dev
-```bash
-npm run dev
-# atau
-npx serve .
-```
-
-## 🔒 Privasi
-
-**Semua proses berjalan di browser pengguna** — tidak ada data yang dikirim ke server. File yang Anda pilih tetap di komputer Anda.
+---
 
 ## 📄 License
 
