@@ -999,7 +999,11 @@ footer .dev-credit span { color: var(--primary); }
   .container { padding: 0 16px; }
   header { flex-direction: column; gap: 14px; text-align: center; padding: 20px 0; }
   .hero { padding: 32px 0 24px; }
-  .tool-content { padding: 22px; }
+
+  .tool-layout { gap: 16px; }
+  .tool-sidebar { padding: 12px; }
+  .tool-content { padding: 18px; min-height: auto; }
+
   .modal { padding: 26px 20px; }
   .dropzone { padding: 30px 16px; }
   .modal-overlay { padding: 12px; }
@@ -1009,7 +1013,7 @@ footer .dev-credit span { color: var(--primary); }
 
 @media (max-width: 480px) {
   .hero h1, .hero-page h1 { font-size: 1.9rem; }
-  .tool-content { padding: 18px; }
+  .tool-content { padding: 16px; }
   .stat-card .stat-value { font-size: 1.3rem; }
 }
 
