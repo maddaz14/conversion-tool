@@ -249,7 +249,7 @@
 
 **Developed for productivity & academic needs** 🎓
 
-**Creator:** [MaddazXD](https://github.com/maddazxd) | **Organization:** Gondrong STIES
+**Creator:** [MaddazXD](https://github.com/maddaz14) | **Organization:** Gondrong STIES
 
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat)](https://opensource.org/licenses/MIT)
 
