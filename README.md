@@ -257,7 +257,7 @@
 
 ### **Star History** ⭐
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/conversion-tool&type=Date)](https://star-history.com/#yourusername/conversion-tool&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=maddaz14/conversion-tool&type=Date)](https://star-history.com/#maddaz14/conversion-tool&Date)
 
 ---
 
