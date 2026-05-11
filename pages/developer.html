@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Developer Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .regex-match { background: rgba(59, 130, 246, 0.25); padding: 1px 2px; border-radius: 3px; }
+    .regex-error { color: var(--danger); font-style: italic; }
+    .color-preview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+    .color-swatch-big {
+      width: 100%;
+      height: 100px;
+      border-radius: 12px;
+      border: 2px solid var(--border-color);
+    }
+    .url-parts-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .url-parts-table td, .url-parts-table th {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+    }
+    .url-parts-table th {
+      text-align: left;
+      background: var(--bg-card);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .url-parts-table td { word-break: break-all; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>💻 <span class="highlight">Developer Tools</span></h1>
+    <p>JSON formatter, XML formatter, regex tester, CSS/HTML/JS minifier, color converter, dan URL parser.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="json"><span class="nav-emoji">{ }</span> JSON</button>
+        <button data-tool="xml"><span class="nav-emoji">&lt;/&gt;</span> XML</button>
+        <button data-tool="regex"><span class="nav-emoji">.*</span> Regex Tester</button>
+        <button data-tool="minify"><span class="nav-emoji">🗜️</span> Minifier</button>
+        <button data-tool="color"><span class="nav-emoji">🎨</span> Color Convert</button>
+        <button data-tool="urlparse"><span class="nav-emoji">🔗</span> URL Parser</button>
+        <button data-tool="diff"><span class="nav-emoji">⚡</span> Text Diff</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <!-- JSON -->
+      <div class="tool-panel" id="panel-json">
+        <h2>{ } JSON Formatter</h2>
+        <p class="panel-desc">Format (beautify), minify, dan validasi JSON. Auto-detect errors.</p>
+
+        <div class="field">
+          <label>Input JSON</label>
+          <textarea class="form-control" id="json-input" rows="10" placeholder='{"key": "value"}'></textarea>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Indent</label>
+            <select class="form-control" id="json-indent">
+              <option value="2">2 spasi</option>
+              <option value="4">4 spasi</option>
+              <option value="t">Tab</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mode</label>
+            <div class="btn-row">
+              <button class="btn btn-primary btn-sm" id="btn-json-fmt">Beautify</button>
+              <button class="btn btn-sm" id="btn-json-min">Minify</button>
+              <button class="btn btn-sm" id="btn-json-val">Validate</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Hasil</label>
+          <textarea class="form-control" id="json-output" rows="10" readonly></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" id="json-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="json-clear">↺ Clear</button>
+        </div>
+        <div class="status-alert" id="st-json"></div>
+      </div>
+
+      <!-- XML -->
+      <div class="tool-panel" id="panel-xml">
+        <h2>&lt;/&gt; XML Formatter</h2>
+        <p class="panel-desc">Format (beautify) dan minify XML/HTML.</p>
+
+        <div class="field">
+          <label>Input XML</label>
+          <textarea class="form-control" id="xml-input" rows="10" placeholder='<root><item>hello</item></root>'></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-xml-fmt">Beautify</button>
+          <button class="btn" id="btn-xml-min">Minify</button>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="xml-output" rows="10" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="xml-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-xml"></div>
+      </div>
+
+      <!-- REGEX -->
+      <div class="tool-panel" id="panel-regex">
+        <h2>.* Regex Tester</h2>
+        <p class="panel-desc">Test regular expression pattern secara real-time dengan highlight matching.</p>
+
+        <div class="field-row">
+          <div class="field" style="flex:3">
+            <label>Regex Pattern</label>
+            <input type="text" class="form-control text-mono" id="rx-pattern" placeholder="\d+" />
+          </div>
+          <div class="field" style="flex:1">
+            <label>Flags</label>
+            <input type="text" class="form-control text-mono" id="rx-flags" value="gi" placeholder="gi" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Test String</label>
+          <textarea class="form-control" id="rx-input" rows="5" placeholder="Tempel teks di sini...">Email: user@example.com, phone: 081234567890, IP: 192.168.1.1</textarea>
+        </div>
+
+        <div class="field">
+          <label>Hasil Match</label>
+          <div class="result-box" id="rx-result" style="min-height:80px"></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="rx-count">0</div>
+            <div class="stat-label">Matches</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="rx-groups">0</div>
+            <div class="stat-label">Groups</div>
+          </div>
+        </div>
+
+        <div class="field mt-3">
+          <label>Match List (per baris)</label>
+          <textarea class="form-control text-mono" id="rx-matches" rows="4" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="rx-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-regex"></div>
+      </div>
+
+      <!-- MINIFIER -->
+      <div class="tool-panel" id="panel-minify">
+        <h2>🗜️ CSS / HTML / JS Minifier</h2>
+        <p class="panel-desc">Minify kode secara dasar (hapus komentar, whitespace berlebih, newline).</p>
+
+        <div class="field">
+          <label>Tipe</label>
+          <select class="form-control" id="min-type">
+            <option value="css">CSS</option>
+            <option value="html">HTML</option>
+            <option value="js">JavaScript</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Input Code</label>
+          <textarea class="form-control" id="min-input" rows="10" placeholder="Paste code..."></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-minify">Minify</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control" id="min-output" rows="6" readonly></textarea>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value" id="min-before">0 B</div><div class="stat-label">Sebelum</div></div>
+          <div class="stat-card"><div class="stat-value" id="min-after">0 B</div><div class="stat-label">Setelah</div></div>
+          <div class="stat-card"><div class="stat-value" id="min-saved">0%</div><div class="stat-label">Hemat</div></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="min-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-minify"></div>
+      </div>
+
+      <!-- COLOR -->
+      <div class="tool-panel" id="panel-color">
+        <h2>🎨 Color Converter</h2>
+        <p class="panel-desc">Konversi warna antara HEX, RGB, HSL. Color picker terintegrasi.</p>
+
+        <div class="color-preview" id="color-preview-wrap">
+          <div class="color-swatch-big" id="color-swatch"></div>
+          <div>
+            <div class="field">
+              <label>Color Picker</label>
+              <input type="color" class="form-control" id="color-picker" value="#3b82f6" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field mt-3">
+          <label>HEX</label>
+          <input type="text" class="form-control text-mono" id="color-hex" value="#3b82f6" />
+        </div>
+        <div class="field-row">
+          <div class="field"><label>R</label><input type="number" class="form-control" id="color-r" min="0" max="255" /></div>
+          <div class="field"><label>G</label><input type="number" class="form-control" id="color-g" min="0" max="255" /></div>
+          <div class="field"><label>B</label><input type="number" class="form-control" id="color-b" min="0" max="255" /></div>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label>H (0-360)</label><input type="number" class="form-control" id="color-h" min="0" max="360" /></div>
+          <div class="field"><label>S (%)</label><input type="number" class="form-control" id="color-s" min="0" max="100" /></div>
+          <div class="field"><label>L (%)</label><input type="number" class="form-control" id="color-l" min="0" max="100" /></div>
+        </div>
+
+        <div class="field mt-2">
+          <label>CSS Values</label>
+          <div class="result-box text-mono" id="color-css"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="color-copy-hex">📋 HEX</button>
+          <button class="btn btn-sm" id="color-copy-rgb">📋 RGB</button>
+          <button class="btn btn-sm" id="color-copy-hsl">📋 HSL</button>
+        </div>
+        <div class="status-alert" id="st-color"></div>
+      </div>
+
+      <!-- URL PARSER -->
+      <div class="tool-panel" id="panel-urlparse">
+        <h2>🔗 URL Parser</h2>
+        <p class="panel-desc">Parse URL untuk melihat semua komponen: protocol, host, path, query params, dll.</p>
+
+        <div class="field">
+          <label>URL</label>
+          <input type="url" class="form-control text-mono" id="up-input" value="https://www.example.com:8080/path/to/page?name=test&page=1#section" />
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-up">Parse URL</button>
+
+        <div class="field mt-3">
+          <table class="url-parts-table" id="up-table">
+            <tr><th>Property</th><th>Value</th></tr>
+          </table>
+        </div>
+
+        <div class="field mt-2">
+          <label>Query Parameters</label>
+          <div class="result-box" id="up-params"></div>
+        </div>
+        <div class="status-alert" id="st-up"></div>
+      </div>
+
+      <!-- TEXT DIFF -->
+      <div class="tool-panel" id="panel-diff">
+        <h2>⚡ Text Diff</h2>
+        <p class="panel-desc">Bandingkan dua teks untuk melihat perbedaan baris per baris.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Teks A (asli)</label>
+            <textarea class="form-control" id="diff-a" rows="8" placeholder="Versi 1..."></textarea>
+          </div>
+          <div class="field">
+            <label>Teks B (baru)</label>
+            <textarea class="form-control" id="diff-b" rows="8" placeholder="Versi 2..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-diff">Bandingkan</button>
+
+        <div class="field mt-3">
+          <label>Hasil Diff</label>
+          <div class="result-box" id="diff-output" style="white-space:pre;max-height:400px"></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-value" id="diff-added" style="color:var(--secondary)">0</div><div class="stat-label">Baris Ditambah</div></div>
+          <div class="stat-card"><div class="stat-value" id="diff-removed" style="color:var(--danger)">0</div><div class="stat-label">Baris Dihapus</div></div>
+          <div class="stat-card"><div class="stat-value" id="diff-same">0</div><div class="stat-label">Baris Sama</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '💻 Developer Tools' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'json');
+
+// ─── JSON ──────────────────────────────────────────────────
+document.getElementById('btn-json-fmt').addEventListener('click', () => {
+  hideStatus('st-json');
+  try {
+    const indent = document.getElementById('json-indent').value === 't' ? '\t' : parseInt(document.getElementById('json-indent').value);
+    const obj = JSON.parse(document.getElementById('json-input').value);
+    document.getElementById('json-output').value = JSON.stringify(obj, null, indent);
+    showStatus('st-json', 'success', 'JSON valid. Formatted.');
+  } catch (e) { showStatus('st-json', 'error', 'Invalid JSON: ' + e.message); }
+});
+document.getElementById('btn-json-min').addEventListener('click', () => {
+  hideStatus('st-json');
+  try {
+    const obj = JSON.parse(document.getElementById('json-input').value);
+    document.getElementById('json-output').value = JSON.stringify(obj);
+    showStatus('st-json', 'success', 'Minified.');
+  } catch (e) { showStatus('st-json', 'error', 'Invalid JSON: ' + e.message); }
+});
+document.getElementById('btn-json-val').addEventListener('click', () => {
+  try {
+    JSON.parse(document.getElementById('json-input').value);
+    showStatus('st-json', 'success', 'JSON valid!');
+  } catch (e) { showStatus('st-json', 'error', 'Invalid JSON: ' + e.message); }
+});
+document.getElementById('json-copy').addEventListener('click', () => copyToClipboard(document.getElementById('json-output').value, 'st-json'));
+document.getElementById('json-clear').addEventListener('click', () => {
+  document.getElementById('json-input').value = '';
+  document.getElementById('json-output').value = '';
+  hideStatus('st-json');
+});
+
+// ─── XML ──────────────────────────────────────────────────
+function formatXml(xml, indent = '  ') {
+  let out = '';
+  let pad = 0;
+  xml = xml.replace(/(>)\s*(<)/g, '$1\n$2');
+  xml.split('\n').forEach(line => {
+    line = line.trim();
+    if (!line) return;
+    if (line.match(/^<\//) ) pad--;
+    out += indent.repeat(Math.max(0, pad)) + line + '\n';
+    if (line.match(/^<[^/!?]/) && !line.match(/\/>$/)) pad++;
+    if (line.match(/^<\?/)) {} // no indent for processing instructions
+  });
+  return out.trim();
+}
+
+document.getElementById('btn-xml-fmt').addEventListener('click', () => {
+  const xml = document.getElementById('xml-input').value;
+  document.getElementById('xml-output').value = formatXml(xml);
+  showStatus('st-xml', 'success', 'Formatted.');
+});
+document.getElementById('btn-xml-min').addEventListener('click', () => {
+  const xml = document.getElementById('xml-input').value;
+  document.getElementById('xml-output').value = xml.replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
+  showStatus('st-xml', 'success', 'Minified.');
+});
+document.getElementById('xml-copy').addEventListener('click', () => copyToClipboard(document.getElementById('xml-output').value, 'st-xml'));
+
+// ─── REGEX ──────────────────────────────────────────────────
+function runRegex() {
+  const patternStr = document.getElementById('rx-pattern').value;
+  const flags = document.getElementById('rx-flags').value;
+  const text = document.getElementById('rx-input').value;
+  const result = document.getElementById('rx-result');
+  const matchesTa = document.getElementById('rx-matches');
+
+  if (!patternStr) {
+    result.innerHTML = text.replace(/</g, '&lt;');
+    document.getElementById('rx-count').textContent = '0';
+    document.getElementById('rx-groups').textContent = '0';
+    matchesTa.value = '';
+    return;
+  }
+  try {
+    const re = new RegExp(patternStr, flags);
+    const all = [...text.matchAll(new RegExp(patternStr, flags.includes('g') ? flags : flags + 'g'))];
+    document.getElementById('rx-count').textContent = all.length;
+    document.getElementById('rx-groups').textContent = all.length > 0 ? Math.max(0, all[0].length - 1) : 0;
+    matchesTa.value = all.map((m, i) => `[${i}] ${m[0]}${m.length > 1 ? ' — groups: ' + m.slice(1).join(', ') : ''}`).join('\n');
+
+    // Highlight
+    let html = '';
+    let lastIdx = 0;
+    all.forEach(m => {
+      const idx = m.index;
+      html += escapeHtml(text.slice(lastIdx, idx));
+      html += `<span class="regex-match">${escapeHtml(m[0])}</span>`;
+      lastIdx = idx + m[0].length;
+    });
+    html += escapeHtml(text.slice(lastIdx));
+    result.innerHTML = html || escapeHtml(text);
+    hideStatus('st-regex');
+  } catch (e) {
+    result.innerHTML = `<span class="regex-error">${e.message}</span>`;
+    showStatus('st-regex', 'error', e.message);
+  }
+}
+function escapeHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+['rx-pattern', 'rx-flags', 'rx-input'].forEach(id => {
+  document.getElementById(id).addEventListener('input', runRegex);
+});
+runRegex();
+document.getElementById('rx-copy').addEventListener('click', () => copyToClipboard(document.getElementById('rx-matches').value, 'st-regex'));
+
+// ─── MINIFIER ──────────────────────────────────────────────────
+function minifyCSS(s) {
+  return s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([{}:;,>~+])\s*/g, '$1').replace(/;}/g, '}').trim();
+}
+function minifyHTML(s) {
+  return s.replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').replace(/\s+/g, ' ').trim();
+}
+function minifyJS(s) {
+  return s.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').replace(/\s*([{}():;,=+\-*/&|!<>?])\s*/g, '$1').trim();
+}
+
+document.getElementById('btn-minify').addEventListener('click', () => {
+  const type = document.getElementById('min-type').value;
+  const input = document.getElementById('min-input').value;
+  let out;
+  if (type === 'css') out = minifyCSS(input);
+  else if (type === 'html') out = minifyHTML(input);
+  else out = minifyJS(input);
+  document.getElementById('min-output').value = out;
+  const before = new TextEncoder().encode(input).length;
+  const after = new TextEncoder().encode(out).length;
+  document.getElementById('min-before').textContent = formatBytes(before);
+  document.getElementById('min-after').textContent = formatBytes(after);
+  document.getElementById('min-saved').textContent = before > 0 ? ((1 - after / before) * 100).toFixed(1) + '%' : '0%';
+});
+document.getElementById('min-copy').addEventListener('click', () => copyToClipboard(document.getElementById('min-output').value, 'st-minify'));
+
+// ─── COLOR ──────────────────────────────────────────────────
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+}
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(c => Math.max(0, Math.min(255, Math.round(c))).toString(16).padStart(2, '0')).join('');
+}
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) * 60; break;
+      case g: h = ((b - r) / d + 2) * 60; break;
+      case b: h = ((r - g) / d + 4) * 60; break;
+    }
+  }
+  return [Math.round(h), Math.round(s * 100), Math.round(l * 100)];
+}
+function hslToRgb(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+}
+
+function updateColor(source) {
+  let r, g, b, h, s, l, hex;
+  if (source === 'hex' || source === 'picker') {
+    hex = (source === 'picker' ? document.getElementById('color-picker').value : document.getElementById('color-hex').value).trim();
+    if (!/^#?[0-9a-fA-F]{3,6}$/.test(hex.replace('#', ''))) return;
+    if (!hex.startsWith('#')) hex = '#' + hex;
+    [r, g, b] = hexToRgb(hex);
+    [h, s, l] = rgbToHsl(r, g, b);
+  } else if (source === 'rgb') {
+    r = parseInt(document.getElementById('color-r').value) || 0;
+    g = parseInt(document.getElementById('color-g').value) || 0;
+    b = parseInt(document.getElementById('color-b').value) || 0;
+    hex = rgbToHex(r, g, b);
+    [h, s, l] = rgbToHsl(r, g, b);
+  } else if (source === 'hsl') {
+    h = parseInt(document.getElementById('color-h').value) || 0;
+    s = parseInt(document.getElementById('color-s').value) || 0;
+    l = parseInt(document.getElementById('color-l').value) || 0;
+    [r, g, b] = hslToRgb(h, s, l);
+    hex = rgbToHex(r, g, b);
+  }
+  // Sync all fields
+  if (source !== 'hex') document.getElementById('color-hex').value = hex;
+  if (source !== 'picker') document.getElementById('color-picker').value = hex;
+  if (source !== 'rgb') { document.getElementById('color-r').value = r; document.getElementById('color-g').value = g; document.getElementById('color-b').value = b; }
+  if (source !== 'hsl') { document.getElementById('color-h').value = h; document.getElementById('color-s').value = s; document.getElementById('color-l').value = l; }
+  document.getElementById('color-swatch').style.background = hex;
+  document.getElementById('color-css').innerHTML = `HEX: ${hex}\nRGB: rgb(${r}, ${g}, ${b})\nHSL: hsl(${h}, ${s}%, ${l}%)\nRGBA: rgba(${r}, ${g}, ${b}, 1)`;
+}
+
+document.getElementById('color-picker').addEventListener('input', () => updateColor('picker'));
+document.getElementById('color-hex').addEventListener('input', () => updateColor('hex'));
+['color-r', 'color-g', 'color-b'].forEach(id => document.getElementById(id).addEventListener('input', () => updateColor('rgb')));
+['color-h', 'color-s', 'color-l'].forEach(id => document.getElementById(id).addEventListener('input', () => updateColor('hsl')));
+updateColor('picker');
+
+document.getElementById('color-copy-hex').addEventListener('click', () => copyToClipboard(document.getElementById('color-hex').value, 'st-color'));
+document.getElementById('color-copy-rgb').addEventListener('click', () => {
+  const r = document.getElementById('color-r').value, g = document.getElementById('color-g').value, b = document.getElementById('color-b').value;
+  copyToClipboard(`rgb(${r}, ${g}, ${b})`, 'st-color');
+});
+document.getElementById('color-copy-hsl').addEventListener('click', () => {
+  const h = document.getElementById('color-h').value, s = document.getElementById('color-s').value, l = document.getElementById('color-l').value;
+  copyToClipboard(`hsl(${h}, ${s}%, ${l}%)`, 'st-color');
+});
+
+// ─── URL PARSER ──────────────────────────────────────────────
+document.getElementById('btn-up').addEventListener('click', () => {
+  hideStatus('st-up');
+  try {
+    const raw = document.getElementById('up-input').value;
+    const url = new URL(raw);
+    const tbl = document.getElementById('up-table');
+    tbl.innerHTML = `
+      <tr><th>Property</th><th>Value</th></tr>
+      <tr><td>href</td><td>${url.href}</td></tr>
+      <tr><td>protocol</td><td>${url.protocol}</td></tr>
+      <tr><td>hostname</td><td>${url.hostname}</td></tr>
+      <tr><td>port</td><td>${url.port || '(default)'}</td></tr>
+      <tr><td>pathname</td><td>${url.pathname}</td></tr>
+      <tr><td>search</td><td>${url.search}</td></tr>
+      <tr><td>hash</td><td>${url.hash || '(none)'}</td></tr>
+      <tr><td>origin</td><td>${url.origin}</td></tr>
+      <tr><td>username</td><td>${url.username || '(none)'}</td></tr>
+      <tr><td>password</td><td>${url.password || '(none)'}</td></tr>`;
+    const params = [...url.searchParams.entries()];
+    const paramsBox = document.getElementById('up-params');
+    paramsBox.textContent = params.length ? params.map(([k, v]) => `${k} = ${v}`).join('\n') : '(no query params)';
+  } catch (e) {
+    showStatus('st-up', 'error', 'URL tidak valid: ' + e.message);
+  }
+});
+document.getElementById('btn-up').click();
+
+// ─── TEXT DIFF (simple LCS-based) ──────────────────────────
+document.getElementById('btn-diff').addEventListener('click', () => {
+  const a = document.getElementById('diff-a').value.split('\n');
+  const b = document.getElementById('diff-b').value.split('\n');
+  // Longest common subsequence (line-based)
+  const m = a.length, n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    }
+  }
+  // Backtrack
+  const lines = [];
+  let i = m, j = n;
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0 && a[i - 1] === b[j - 1]) {
+      lines.unshift({ type: 'same', text: a[i - 1] });
+      i--; j--;
+    } else if (j > 0 && (i === 0 || dp[i][j - 1] >= dp[i - 1][j])) {
+      lines.unshift({ type: 'add', text: b[j - 1] });
+      j--;
+    } else {
+      lines.unshift({ type: 'del', text: a[i - 1] });
+      i--;
+    }
+  }
+  let addCount = 0, delCount = 0, sameCount = 0;
+  const html = lines.map(l => {
+    const esc = escapeHtml(l.text);
+    if (l.type === 'add') { addCount++; return `<span style="color:var(--secondary)">+ ${esc}</span>`; }
+    if (l.type === 'del') { delCount++; return `<span style="color:var(--danger)">- ${esc}</span>`; }
+    sameCount++;
+    return `  ${esc}`;
+  }).join('\n');
+  document.getElementById('diff-output').innerHTML = html;
+  document.getElementById('diff-added').textContent = addCount;
+  document.getElementById('diff-removed').textContent = delCount;
+  document.getElementById('diff-same').textContent = sameCount;
+});
+</script>
+
+</body>
+</html>

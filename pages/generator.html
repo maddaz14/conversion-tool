@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generator — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <style>
+    #qrcode-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+      background: white;
+      border-radius: 14px;
+      margin: 16px auto;
+      width: fit-content;
+    }
+    #qrcode-display canvas, #qrcode-display img {
+      display: block !important;
+    }
+    .password-display {
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      padding: 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      word-break: break-all;
+      letter-spacing: 0.02em;
+      color: var(--primary);
+      min-height: 60px;
+    }
+    .strength-bar {
+      height: 8px;
+      background: var(--bg-card);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    .strength-fill {
+      height: 100%;
+      width: 0;
+      transition: all 0.3s;
+      border-radius: 99px;
+    }
+    .swatch {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .swatch:hover { transform: translateY(-2px); border-color: var(--primary); }
+    .swatch-color {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      flex-shrink: 0;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .swatch-info {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .swatch-info strong { color: var(--text-main); }
+    .swatch-info span { color: var(--text-muted); }
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🎲 <span class="highlight">Generator</span></h1>
+    <p>Generate QR Code, password kuat, UUID, random number, color palette, dan fake data untuk testing.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="qr"><span class="nav-emoji">⬛</span> QR Code</button>
+        <button data-tool="password"><span class="nav-emoji">🔑</span> Password</button>
+        <button data-tool="uuid"><span class="nav-emoji">🆔</span> UUID</button>
+        <button data-tool="number"><span class="nav-emoji">🎰</span> Random Number</button>
+        <button data-tool="color"><span class="nav-emoji">🎨</span> Color Palette</button>
+        <button data-tool="fake"><span class="nav-emoji">👤</span> Fake Data</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <!-- QR CODE -->
+      <div class="tool-panel" id="panel-qr">
+        <h2>⬛ QR Code Generator</h2>
+        <p class="panel-desc">Generate QR Code dari teks, URL, WiFi credential, atau kontak.</p>
+
+        <div class="field">
+          <label>Tipe</label>
+          <select class="form-control" id="qr-type">
+            <option value="text">Teks / URL</option>
+            <option value="wifi">WiFi</option>
+            <option value="email">Email</option>
+            <option value="sms">SMS</option>
+            <option value="phone">Nomor Telepon</option>
+          </select>
+        </div>
+
+        <div id="qr-fields-text">
+          <div class="field">
+            <label>Teks / URL</label>
+            <textarea class="form-control" id="qr-text" rows="3" placeholder="https://example.com atau teks apapun"></textarea>
+          </div>
+        </div>
+
+        <div id="qr-fields-wifi" class="hidden">
+          <div class="field"><label>SSID</label><input type="text" class="form-control" id="qr-wifi-ssid" /></div>
+          <div class="field"><label>Password</label><input type="text" class="form-control" id="qr-wifi-pass" /></div>
+          <div class="field">
+            <label>Encryption</label>
+            <select class="form-control" id="qr-wifi-enc">
+              <option value="WPA">WPA / WPA2</option>
+              <option value="WEP">WEP</option>
+              <option value="nopass">None</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="qr-fields-email" class="hidden">
+          <div class="field"><label>Email</label><input type="email" class="form-control" id="qr-email-addr" /></div>
+          <div class="field"><label>Subject</label><input type="text" class="form-control" id="qr-email-sub" /></div>
+          <div class="field"><label>Body</label><textarea class="form-control" id="qr-email-body" rows="2"></textarea></div>
+        </div>
+
+        <div id="qr-fields-sms" class="hidden">
+          <div class="field"><label>Nomor</label><input type="text" class="form-control" id="qr-sms-num" /></div>
+          <div class="field"><label>Pesan</label><textarea class="form-control" id="qr-sms-msg" rows="2"></textarea></div>
+        </div>
+
+        <div id="qr-fields-phone" class="hidden">
+          <div class="field"><label>Nomor Telepon</label><input type="text" class="form-control" id="qr-phone-num" placeholder="+62812..." /></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Ukuran</label>
+            <select class="form-control" id="qr-size">
+              <option value="200">200 px</option>
+              <option value="300" selected>300 px</option>
+              <option value="500">500 px</option>
+              <option value="800">800 px</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Warna QR</label>
+            <input type="color" class="form-control" id="qr-color" value="#000000" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-qr">Generate QR Code</button>
+
+        <div id="qrcode-display"></div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" id="qr-download">⬇ Download PNG</button>
+        </div>
+        <div class="status-alert" id="st-qr"></div>
+      </div>
+
+      <!-- PASSWORD -->
+      <div class="tool-panel" id="panel-password">
+        <h2>🔑 Password Generator</h2>
+        <p class="panel-desc">Generate password kuat dengan kontrol penuh atas karakter yang digunakan.</p>
+
+        <div class="field">
+          <label>Panjang Password</label>
+          <div class="range-row">
+            <input type="range" id="pw-length" min="4" max="64" value="16" />
+            <span class="range-value" id="pw-length-val">16</span>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="checkbox-row"><input type="checkbox" id="pw-upper" checked /><span>Huruf besar (A-Z)</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="pw-lower" checked /><span>Huruf kecil (a-z)</span></label>
+        </div>
+        <div class="field-row">
+          <label class="checkbox-row"><input type="checkbox" id="pw-number" checked /><span>Angka (0-9)</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="pw-symbol" /><span>Simbol (!@#$...)</span></label>
+        </div>
+        <div class="field-row">
+          <label class="checkbox-row"><input type="checkbox" id="pw-ambig" /><span>Hilangkan ambigu (0,O,1,l,I)</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="pw-spaces" /><span>Hilangkan duplikat</span></label>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-pw">Generate Password</button>
+
+        <div class="password-display mt-2" id="pw-display">—</div>
+        <div class="strength-bar"><div class="strength-fill" id="pw-strength"></div></div>
+        <div class="text-muted text-mono" id="pw-strength-label" style="font-size:0.82rem">Kekuatan: -</div>
+
+        <div class="btn-row mt-2">
+          <button class="btn btn-sm" id="pw-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="btn-pw">↻ Regenerate</button>
+        </div>
+        <div class="status-alert" id="st-pw"></div>
+      </div>
+
+      <!-- UUID -->
+      <div class="tool-panel" id="panel-uuid">
+        <h2>🆔 UUID Generator</h2>
+        <p class="panel-desc">Generate UUID v4 (random) sesuai RFC 4122. Bisa generate batch sekaligus.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Jumlah</label>
+            <input type="number" class="form-control" id="uuid-count" value="5" min="1" max="500" />
+          </div>
+          <div class="field">
+            <label>Format</label>
+            <select class="form-control" id="uuid-fmt">
+              <option value="default">Standard (with dashes)</option>
+              <option value="nodash">Tanpa dash</option>
+              <option value="upper">UPPERCASE</option>
+              <option value="braces">{xxxx-xxxx...}</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-uuid">Generate</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control text-mono" id="uuid-output" rows="8" readonly></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-sm" id="uuid-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-uuid"></div>
+      </div>
+
+      <!-- RANDOM NUMBER -->
+      <div class="tool-panel" id="panel-number">
+        <h2>🎰 Random Number Generator</h2>
+        <p class="panel-desc">Generate angka acak dalam range tertentu, single atau batch.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Minimum</label>
+            <input type="number" class="form-control" id="num-min" value="1" />
+          </div>
+          <div class="field">
+            <label>Maksimum</label>
+            <input type="number" class="form-control" id="num-max" value="100" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Jumlah</label>
+            <input type="number" class="form-control" id="num-count" value="10" min="1" max="1000" />
+          </div>
+          <div class="field">
+            <label>Tipe</label>
+            <select class="form-control" id="num-type">
+              <option value="int">Bilangan bulat</option>
+              <option value="float">Bilangan desimal</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="checkbox-row">
+            <input type="checkbox" id="num-unique" />
+            <span>Unik (tidak ada duplikat) — hanya integer</span>
+          </label>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-num">Generate</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control text-mono" id="num-output" rows="6" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="num-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-num"></div>
+      </div>
+
+      <!-- COLOR PALETTE -->
+      <div class="tool-panel" id="panel-color">
+        <h2>🎨 Color Palette Generator</h2>
+        <p class="panel-desc">Generate palette warna random atau berdasarkan warna dasar (mode harmoni).</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Mode</label>
+            <select class="form-control" id="col-mode">
+              <option value="random">Random</option>
+              <option value="analog">Analogous (dari warna dasar)</option>
+              <option value="comp">Complementary (dari warna dasar)</option>
+              <option value="triad">Triadic (dari warna dasar)</option>
+              <option value="mono">Monochromatic (dari warna dasar)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Warna Dasar</label>
+            <input type="color" class="form-control" id="col-base" value="#3b82f6" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Jumlah Warna</label>
+          <div class="range-row">
+            <input type="range" id="col-count" min="3" max="12" value="5" />
+            <span class="range-value" id="col-count-val">5</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-col">Generate Palette</button>
+
+        <div class="palette-grid" id="col-output"></div>
+        <div class="status-alert" id="st-col"></div>
+      </div>
+
+      <!-- FAKE DATA -->
+      <div class="tool-panel" id="panel-fake">
+        <h2>👤 Fake Data Generator</h2>
+        <p class="panel-desc">Generate data fiktif untuk testing — nama, email, alamat, nomor telepon.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Jumlah Baris</label>
+            <input type="number" class="form-control" id="fk-count" value="10" min="1" max="500" />
+          </div>
+          <div class="field">
+            <label>Format Output</label>
+            <select class="form-control" id="fk-fmt">
+              <option value="text">Plain text</option>
+              <option value="csv">CSV</option>
+              <option value="json">JSON</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Field yang Dimasukkan</label>
+          <div class="field-row-3">
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="name" checked /><span>Nama</span></label>
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="email" checked /><span>Email</span></label>
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="phone" checked /><span>Telepon</span></label>
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="address" /><span>Alamat</span></label>
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="city" /><span>Kota</span></label>
+            <label class="checkbox-row"><input type="checkbox" data-fk-field="username" /><span>Username</span></label>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-fk">Generate</button>
+
+        <div class="field mt-3">
+          <label>Hasil</label>
+          <textarea class="form-control text-mono" id="fk-output" rows="10" readonly></textarea>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="fk-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="fk-download">⬇ Download</button>
+        </div>
+        <div class="status-alert" id="st-fk"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🎲 Generator' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'qr');
+
+// ─── QR CODE ──────────────────────────────────────────────────
+function buildQRData() {
+  const t = document.getElementById('qr-type').value;
+  if (t === 'text') return document.getElementById('qr-text').value;
+  if (t === 'wifi') {
+    const s = document.getElementById('qr-wifi-ssid').value;
+    const p = document.getElementById('qr-wifi-pass').value;
+    const e = document.getElementById('qr-wifi-enc').value;
+    return `WIFI:T:${e};S:${s};P:${p};;`;
+  }
+  if (t === 'email') {
+    const a = document.getElementById('qr-email-addr').value;
+    const s = document.getElementById('qr-email-sub').value;
+    const b = document.getElementById('qr-email-body').value;
+    return `mailto:${a}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`;
+  }
+  if (t === 'sms') {
+    const n = document.getElementById('qr-sms-num').value;
+    const m = document.getElementById('qr-sms-msg').value;
+    return `SMSTO:${n}:${m}`;
+  }
+  if (t === 'phone') return 'tel:' + document.getElementById('qr-phone-num').value;
+  return '';
+}
+
+document.getElementById('qr-type').addEventListener('change', e => {
+  ['text', 'wifi', 'email', 'sms', 'phone'].forEach(t => {
+    document.getElementById('qr-fields-' + t).classList.toggle('hidden', t !== e.target.value);
+  });
+});
+
+let qrInstance = null;
+document.getElementById('btn-qr').addEventListener('click', () => {
+  hideStatus('st-qr');
+  const data = buildQRData();
+  if (!data) { showStatus('st-qr', 'error', 'Isi data terlebih dahulu.'); return; }
+  const size = parseInt(document.getElementById('qr-size').value);
+  const color = document.getElementById('qr-color').value;
+  const wrap = document.getElementById('qrcode-display');
+  wrap.innerHTML = '';
+  qrInstance = new QRCode(wrap, {
+    text: data,
+    width: size,
+    height: size,
+    colorDark: color,
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+  showStatus('st-qr', 'success', 'QR Code di-generate.');
+});
+
+document.getElementById('qr-download').addEventListener('click', () => {
+  const wrap = document.getElementById('qrcode-display');
+  const canvas = wrap.querySelector('canvas');
+  const img = wrap.querySelector('img');
+  if (canvas) {
+    canvas.toBlob(blob => downloadBlob(blob, 'qrcode.png'));
+  } else if (img) {
+    fetch(img.src).then(r => r.blob()).then(b => downloadBlob(b, 'qrcode.png'));
+  } else {
+    showStatus('st-qr', 'error', 'Generate QR Code terlebih dahulu.');
+  }
+});
+
+// ─── PASSWORD ──────────────────────────────────────────────────
+const UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const LOWER = 'abcdefghijklmnopqrstuvwxyz';
+const NUMBERS = '0123456789';
+const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+const AMBIGUOUS = 'O0Il1';
+
+function bindRange(id, valId, suffix = '') {
+  const r = document.getElementById(id);
+  const v = document.getElementById(valId);
+  const u = () => v.textContent = r.value + suffix;
+  r.addEventListener('input', u); u();
+}
+bindRange('pw-length', 'pw-length-val');
+
+function generatePassword() {
+  const len = parseInt(document.getElementById('pw-length').value);
+  let pool = '';
+  if (document.getElementById('pw-upper').checked) pool += UPPER;
+  if (document.getElementById('pw-lower').checked) pool += LOWER;
+  if (document.getElementById('pw-number').checked) pool += NUMBERS;
+  if (document.getElementById('pw-symbol').checked) pool += SYMBOLS;
+  if (document.getElementById('pw-ambig').checked) {
+    pool = pool.split('').filter(c => !AMBIGUOUS.includes(c)).join('');
+  }
+  if (!pool) return '';
+  const noDup = document.getElementById('pw-spaces').checked;
+  const arr = new Uint32Array(len);
+  crypto.getRandomValues(arr);
+  let pw = '';
+  for (let i = 0; i < len; i++) {
+    let c = pool[arr[i] % pool.length];
+    if (noDup && pw.includes(c)) {
+      // try alt
+      let tries = 0;
+      while (pw.includes(c) && tries < pool.length) {
+        c = pool[Math.floor(Math.random() * pool.length)];
+        tries++;
+      }
+    }
+    pw += c;
+  }
+  return pw;
+}
+
+function passwordStrength(pw) {
+  let score = 0;
+  if (pw.length >= 8) score += 1;
+  if (pw.length >= 12) score += 1;
+  if (pw.length >= 16) score += 1;
+  if (/[a-z]/.test(pw)) score += 1;
+  if (/[A-Z]/.test(pw)) score += 1;
+  if (/\d/.test(pw)) score += 1;
+  if (/[^a-zA-Z0-9]/.test(pw)) score += 2;
+  return Math.min(score, 8);
+}
+
+function regen() {
+  const pw = generatePassword();
+  document.getElementById('pw-display').textContent = pw || '(pilih minimal 1 karakter set)';
+  const s = passwordStrength(pw);
+  const fill = document.getElementById('pw-strength');
+  fill.style.width = (s / 8 * 100) + '%';
+  const colors = ['#ef4444', '#ef4444', '#f59e0b', '#f59e0b', '#f59e0b', '#10b981', '#10b981', '#10b981', '#10b981'];
+  fill.style.background = colors[s];
+  const labels = ['Sangat lemah', 'Sangat lemah', 'Lemah', 'Lemah', 'Sedang', 'Sedang', 'Kuat', 'Kuat', 'Sangat kuat'];
+  document.getElementById('pw-strength-label').textContent = 'Kekuatan: ' + labels[s];
+}
+
+document.querySelectorAll('#panel-password input').forEach(i => {
+  i.addEventListener('change', regen);
+});
+document.getElementById('pw-length').addEventListener('input', regen);
+document.querySelector('#panel-password button.btn-primary').addEventListener('click', regen);
+document.getElementById('pw-copy').addEventListener('click', () => {
+  const t = document.getElementById('pw-display').textContent;
+  if (t && !t.startsWith('(')) copyToClipboard(t, 'st-pw');
+});
+regen();
+
+// ─── UUID ──────────────────────────────────────────────────
+function uuidv4() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  // Fallback
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = [...bytes].map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+
+document.getElementById('btn-uuid').addEventListener('click', () => {
+  const n = Math.min(500, parseInt(document.getElementById('uuid-count').value) || 1);
+  const fmt = document.getElementById('uuid-fmt').value;
+  const arr = Array.from({ length: n }, uuidv4);
+  let out = arr;
+  if (fmt === 'nodash') out = arr.map(u => u.replace(/-/g, ''));
+  else if (fmt === 'upper') out = arr.map(u => u.toUpperCase());
+  else if (fmt === 'braces') out = arr.map(u => '{' + u + '}');
+  document.getElementById('uuid-output').value = out.join('\n');
+  showStatus('st-uuid', 'success', `${n} UUID di-generate.`);
+});
+document.getElementById('uuid-copy').addEventListener('click', () => copyToClipboard(document.getElementById('uuid-output').value, 'st-uuid'));
+
+// ─── RANDOM NUMBER ──────────────────────────────────────────────
+document.getElementById('btn-num').addEventListener('click', () => {
+  const min = parseFloat(document.getElementById('num-min').value);
+  const max = parseFloat(document.getElementById('num-max').value);
+  const count = parseInt(document.getElementById('num-count').value);
+  const type = document.getElementById('num-type').value;
+  const unique = document.getElementById('num-unique').checked;
+  if (min >= max) { showStatus('st-num', 'error', 'Min harus < Max.'); return; }
+  if (unique && type === 'int' && (max - min + 1) < count) {
+    showStatus('st-num', 'error', 'Range terlalu kecil untuk angka unik sebanyak itu.'); return;
+  }
+  const out = [];
+  const seen = new Set();
+  while (out.length < count) {
+    let n;
+    if (type === 'int') n = Math.floor(Math.random() * (max - min + 1)) + Math.ceil(min);
+    else n = Math.random() * (max - min) + min;
+    if (unique && type === 'int' && seen.has(n)) continue;
+    seen.add(n);
+    out.push(type === 'int' ? n : n.toFixed(4));
+  }
+  document.getElementById('num-output').value = out.join('\n');
+  showStatus('st-num', 'success', `${count} angka di-generate.`);
+});
+document.getElementById('num-copy').addEventListener('click', () => copyToClipboard(document.getElementById('num-output').value, 'st-num'));
+
+// ─── COLOR PALETTE ──────────────────────────────────────────────
+function hexToHsl(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const r = parseInt(hex.slice(0,2), 16) / 255;
+  const g = parseInt(hex.slice(2,4), 16) / 255;
+  const b = parseInt(hex.slice(4,6), 16) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)); break;
+      case g: h = ((b - r) / d + 2); break;
+      case b: h = ((r - g) / d + 4); break;
+    }
+    h /= 6;
+  }
+  return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+}
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+  const toHex = x => Math.round(x * 255).toString(16).padStart(2, '0');
+  return '#' + toHex(f(0)) + toHex(f(8)) + toHex(f(4));
+}
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return [parseInt(hex.slice(0,2), 16), parseInt(hex.slice(2,4), 16), parseInt(hex.slice(4,6), 16)];
+}
+
+bindRange('col-count', 'col-count-val');
+
+function renderPalette(colors) {
+  const wrap = document.getElementById('col-output');
+  wrap.innerHTML = colors.map(c => {
+    const [r, g, b] = hexToRgb(c);
+    const [h, s, l] = hexToHsl(c);
+    return `<div class="swatch" data-copy="${c}">
+      <div class="swatch-color" style="background:${c}"></div>
+      <div class="swatch-info">
+        <strong>${c.toUpperCase()}</strong><br>
+        <span>rgb(${r},${g},${b})</span><br>
+        <span>hsl(${h},${s}%,${l}%)</span>
+      </div>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('.swatch').forEach(s => {
+    s.addEventListener('click', () => copyToClipboard(s.dataset.copy, 'st-col'));
+  });
+}
+
+document.getElementById('btn-col').addEventListener('click', () => {
+  const mode = document.getElementById('col-mode').value;
+  const count = parseInt(document.getElementById('col-count').value);
+  const base = document.getElementById('col-base').value;
+  let colors = [];
+  if (mode === 'random') {
+    for (let i = 0; i < count; i++) {
+      const c = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
+      colors.push(c);
+    }
+  } else {
+    const [h, s, l] = hexToHsl(base);
+    if (mode === 'analog') {
+      for (let i = 0; i < count; i++) colors.push(hslToHex((h + (i - count / 2) * 25 + 360) % 360, s, l));
+    } else if (mode === 'comp') {
+      for (let i = 0; i < count; i++) {
+        const hh = i % 2 === 0 ? h : (h + 180) % 360;
+        const ll = 30 + (i / count) * 50;
+        colors.push(hslToHex(hh, s, ll));
+      }
+    } else if (mode === 'triad') {
+      for (let i = 0; i < count; i++) {
+        const hh = (h + (i % 3) * 120) % 360;
+        const ll = 35 + Math.floor(i / 3) * 15;
+        colors.push(hslToHex(hh, s, Math.min(85, ll)));
+      }
+    } else if (mode === 'mono') {
+      for (let i = 0; i < count; i++) {
+        const ll = 15 + (i / (count - 1)) * 70;
+        colors.push(hslToHex(h, s, ll));
+      }
+    }
+  }
+  renderPalette(colors);
+  showStatus('st-col', 'info', 'Klik swatch untuk menyalin.');
+});
+
+// initial
+document.getElementById('btn-col').click();
+
+// ─── FAKE DATA ──────────────────────────────────────────────
+const fkFirst = ['Ahmad','Budi','Citra','Dewi','Eka','Faiz','Gilang','Hana','Indah','Joko','Kartika','Lina','Maya','Nadia','Omar','Putri','Rina','Sari','Tono','Umar','Vina','Wati','Yudi','Zaki','Andi','Bayu','Cahya','Dimas','Erika','Fajar'];
+const fkLast = ['Pratama','Wijaya','Saputra','Hidayat','Anggraini','Setiawan','Maulana','Nugraha','Rahayu','Susanto','Lestari','Permata','Aditya','Wibowo','Kurnia','Hartono'];
+const fkCities = ['Jakarta','Bandung','Surabaya','Medan','Yogyakarta','Semarang','Makassar','Palembang','Bekasi','Tangerang','Depok','Bogor','Malang','Denpasar','Pekanbaru'];
+const fkStreets = ['Jl. Merdeka','Jl. Sudirman','Jl. Diponegoro','Jl. Ahmad Yani','Jl. Gatot Subroto','Jl. Pemuda','Jl. Pahlawan','Jl. Kartini','Jl. Veteran'];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function fkPhone() {
+  const prefix = pick(['0812','0813','0821','0822','0852','0853','0857','0858','0817','0818']);
+  let n = '';
+  for (let i = 0; i < 7; i++) n += Math.floor(Math.random() * 10);
+  return prefix + n;
+}
+
+function generateFakeRow(fields) {
+  const first = pick(fkFirst);
+  const last = pick(fkLast);
+  const obj = {};
+  if (fields.includes('name')) obj.name = first + ' ' + last;
+  if (fields.includes('username')) obj.username = (first + last).toLowerCase() + Math.floor(Math.random() * 100);
+  if (fields.includes('email')) {
+    const domain = pick(['gmail.com','yahoo.com','outlook.com','hotmail.com']);
+    obj.email = (first + '.' + last).toLowerCase() + Math.floor(Math.random() * 100) + '@' + domain;
+  }
+  if (fields.includes('phone')) obj.phone = fkPhone();
+  if (fields.includes('address')) obj.address = pick(fkStreets) + ' No. ' + (Math.floor(Math.random() * 200) + 1);
+  if (fields.includes('city')) obj.city = pick(fkCities);
+  return obj;
+}
+
+document.getElementById('btn-fk').addEventListener('click', () => {
+  const count = Math.min(500, parseInt(document.getElementById('fk-count').value) || 1);
+  const fmt = document.getElementById('fk-fmt').value;
+  const fields = [...document.querySelectorAll('[data-fk-field]:checked')].map(c => c.dataset.fkField);
+  if (fields.length === 0) { showStatus('st-fk', 'error', 'Pilih minimal 1 field.'); return; }
+  const rows = Array.from({ length: count }, () => generateFakeRow(fields));
+  let out;
+  if (fmt === 'json') out = JSON.stringify(rows, null, 2);
+  else if (fmt === 'csv') {
+    const headers = fields.join(',');
+    const lines = rows.map(r => fields.map(f => `"${String(r[f] || '').replace(/"/g, '""')}"`).join(','));
+    out = headers + '\n' + lines.join('\n');
+  } else {
+    out = rows.map(r => fields.map(f => r[f]).join(' | ')).join('\n');
+  }
+  document.getElementById('fk-output').value = out;
+  showStatus('st-fk', 'success', `${count} record di-generate.`);
+});
+
+document.getElementById('fk-copy').addEventListener('click', () => copyToClipboard(document.getElementById('fk-output').value, 'st-fk'));
+document.getElementById('fk-download').addEventListener('click', () => {
+  const fmt = document.getElementById('fk-fmt').value;
+  const out = document.getElementById('fk-output').value;
+  if (!out) return;
+  const ext = fmt === 'csv' ? 'csv' : (fmt === 'json' ? 'json' : 'txt');
+  downloadText(out, `fake-data.${ext}`, fmt === 'json' ? 'application/json' : (fmt === 'csv' ? 'text/csv' : 'text/plain'));
+});
+</script>
+
+</body>
+</html>

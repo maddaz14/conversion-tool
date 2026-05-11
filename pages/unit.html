@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unit Converter — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>📐 <span class="highlight">Unit Converter</span></h1>
+    <p>Konversi panjang, berat, suhu, luas, volume, waktu, kecepatan, ukuran data, plus BMI & age calculator.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="length"><span class="nav-emoji">📏</span> Panjang</button>
+        <button data-tool="weight"><span class="nav-emoji">⚖️</span> Berat</button>
+        <button data-tool="temp"><span class="nav-emoji">🌡️</span> Suhu</button>
+        <button data-tool="area"><span class="nav-emoji">🟦</span> Luas</button>
+        <button data-tool="volume"><span class="nav-emoji">🥤</span> Volume</button>
+        <button data-tool="time"><span class="nav-emoji">⏱️</span> Waktu</button>
+        <button data-tool="speed"><span class="nav-emoji">🚗</span> Kecepatan</button>
+        <button data-tool="data"><span class="nav-emoji">💾</span> Data Storage</button>
+        <button data-tool="bmi"><span class="nav-emoji">💪</span> BMI Calculator</button>
+        <button data-tool="age"><span class="nav-emoji">🎂</span> Age Calculator</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <div class="tool-panel" id="panel-length"></div>
+      <div class="tool-panel" id="panel-weight"></div>
+      <div class="tool-panel" id="panel-temp"></div>
+      <div class="tool-panel" id="panel-area"></div>
+      <div class="tool-panel" id="panel-volume"></div>
+      <div class="tool-panel" id="panel-time"></div>
+      <div class="tool-panel" id="panel-speed"></div>
+      <div class="tool-panel" id="panel-data"></div>
+
+      <!-- BMI -->
+      <div class="tool-panel" id="panel-bmi">
+        <h2>💪 BMI Calculator</h2>
+        <p class="panel-desc">Hitung Body Mass Index (BMI) dan kategori berat ideal.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Berat Badan (kg)</label>
+            <input type="number" class="form-control" id="bmi-w" value="70" min="1" step="0.1" />
+          </div>
+          <div class="field">
+            <label>Tinggi Badan (cm)</label>
+            <input type="number" class="form-control" id="bmi-h" value="170" min="1" step="0.1" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-bmi">Hitung BMI</button>
+
+        <div class="stat-grid mt-3">
+          <div class="stat-card">
+            <div class="stat-value" id="bmi-value">—</div>
+            <div class="stat-label">BMI</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="bmi-cat" style="font-size:1rem">—</div>
+            <div class="stat-label">Kategori</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="bmi-ideal" style="font-size:1rem">—</div>
+            <div class="stat-label">Berat Ideal</div>
+          </div>
+        </div>
+
+        <div class="status-alert info show mt-2" style="font-size:0.85rem">
+          <span><strong>Referensi WHO:</strong> &lt;18.5 Kurus · 18.5-24.9 Normal · 25-29.9 Gemuk · ≥30 Obesitas</span>
+        </div>
+      </div>
+
+      <!-- AGE -->
+      <div class="tool-panel" id="panel-age">
+        <h2>🎂 Age Calculator</h2>
+        <p class="panel-desc">Hitung umur dalam tahun, bulan, hari, jam, hingga detik dari tanggal lahir.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Tanggal Lahir</label>
+            <input type="date" class="form-control" id="age-birth" />
+          </div>
+          <div class="field">
+            <label>Hitung Hingga</label>
+            <input type="date" class="form-control" id="age-today" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-age">Hitung Umur</button>
+
+        <div class="stat-grid mt-3">
+          <div class="stat-card"><div class="stat-value" id="age-y">0</div><div class="stat-label">Tahun</div></div>
+          <div class="stat-card"><div class="stat-value" id="age-m">0</div><div class="stat-label">Bulan</div></div>
+          <div class="stat-card"><div class="stat-value" id="age-d">0</div><div class="stat-label">Hari</div></div>
+        </div>
+        <div class="stat-grid mt-2">
+          <div class="stat-card"><div class="stat-value" id="age-total-d" style="font-size:1.1rem">0</div><div class="stat-label">Total Hari</div></div>
+          <div class="stat-card"><div class="stat-value" id="age-total-h" style="font-size:1.1rem">0</div><div class="stat-label">Total Jam</div></div>
+          <div class="stat-card"><div class="stat-value" id="age-total-min" style="font-size:1.1rem">0</div><div class="stat-label">Total Menit</div></div>
+          <div class="stat-card"><div class="stat-value" id="age-total-s" style="font-size:1.1rem">0</div><div class="stat-label">Total Detik</div></div>
+        </div>
+        <div class="status-alert" id="st-age"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '📐 Unit Converter' });
+injectFooter('ftr');
+
+// ─── GENERIC UNIT CONVERTER ──────────────────────────────────────
+const unitDefs = {
+  length: {
+    title: '📏 Konversi Panjang',
+    desc: 'Konversi antara meter, kilometer, centimeter, inch, foot, yard, mile, dan nautical mile.',
+    base: 'm',
+    units: {
+      'mm': { name: 'Millimeter (mm)', factor: 0.001 },
+      'cm': { name: 'Centimeter (cm)', factor: 0.01 },
+      'm':  { name: 'Meter (m)', factor: 1 },
+      'km': { name: 'Kilometer (km)', factor: 1000 },
+      'in': { name: 'Inch (in)', factor: 0.0254 },
+      'ft': { name: 'Foot (ft)', factor: 0.3048 },
+      'yd': { name: 'Yard (yd)', factor: 0.9144 },
+      'mi': { name: 'Mile (mi)', factor: 1609.344 },
+      'nmi':{ name: 'Nautical Mile (nmi)', factor: 1852 }
+    }
+  },
+  weight: {
+    title: '⚖️ Konversi Berat',
+    desc: 'Konversi gram, kilogram, ton, pon, ons, dan stone.',
+    base: 'kg',
+    units: {
+      'mg': { name: 'Milligram (mg)', factor: 0.000001 },
+      'g':  { name: 'Gram (g)', factor: 0.001 },
+      'kg': { name: 'Kilogram (kg)', factor: 1 },
+      't':  { name: 'Ton (t)', factor: 1000 },
+      'oz': { name: 'Ounce (oz)', factor: 0.0283495 },
+      'lb': { name: 'Pound (lb)', factor: 0.453592 },
+      'st': { name: 'Stone (st)', factor: 6.35029 }
+    }
+  },
+  area: {
+    title: '🟦 Konversi Luas',
+    desc: 'Konversi meter persegi, kilometer persegi, hektar, acre, dan foot persegi.',
+    base: 'm2',
+    units: {
+      'cm2': { name: 'cm²', factor: 0.0001 },
+      'm2':  { name: 'm² (meter persegi)', factor: 1 },
+      'ha':  { name: 'Hektar (ha)', factor: 10000 },
+      'km2': { name: 'km²', factor: 1000000 },
+      'in2': { name: 'inch²', factor: 0.00064516 },
+      'ft2': { name: 'foot²', factor: 0.092903 },
+      'yd2': { name: 'yard²', factor: 0.836127 },
+      'ac':  { name: 'Acre', factor: 4046.86 },
+      'mi2': { name: 'mile²', factor: 2589988 }
+    }
+  },
+  volume: {
+    title: '🥤 Konversi Volume',
+    desc: 'Konversi liter, milliliter, gallon, cup, dan unit volume lainnya.',
+    base: 'l',
+    units: {
+      'ml':  { name: 'Milliliter (ml)', factor: 0.001 },
+      'l':   { name: 'Liter (l)', factor: 1 },
+      'm3':  { name: 'Meter kubik (m³)', factor: 1000 },
+      'cm3': { name: 'cm³', factor: 0.001 },
+      'gal': { name: 'US Gallon', factor: 3.78541 },
+      'qt':  { name: 'US Quart', factor: 0.946353 },
+      'pt':  { name: 'US Pint', factor: 0.473176 },
+      'cup': { name: 'US Cup', factor: 0.236588 },
+      'tbsp':{ name: 'Tablespoon', factor: 0.0147868 },
+      'tsp': { name: 'Teaspoon', factor: 0.00492892 }
+    }
+  },
+  time: {
+    title: '⏱️ Konversi Waktu',
+    desc: 'Konversi detik, menit, jam, hari, minggu, bulan, dan tahun.',
+    base: 's',
+    units: {
+      'ms':  { name: 'Millisecond (ms)', factor: 0.001 },
+      's':   { name: 'Detik (s)', factor: 1 },
+      'min': { name: 'Menit', factor: 60 },
+      'h':   { name: 'Jam', factor: 3600 },
+      'd':   { name: 'Hari', factor: 86400 },
+      'wk':  { name: 'Minggu', factor: 604800 },
+      'mo':  { name: 'Bulan (avg)', factor: 2629800 },
+      'yr':  { name: 'Tahun', factor: 31557600 }
+    }
+  },
+  speed: {
+    title: '🚗 Konversi Kecepatan',
+    desc: 'Konversi m/s, km/h, mph, knot.',
+    base: 'mps',
+    units: {
+      'mps':  { name: 'Meter/detik (m/s)', factor: 1 },
+      'kmh':  { name: 'Kilometer/jam (km/h)', factor: 0.277778 },
+      'mph':  { name: 'Mile/jam (mph)', factor: 0.44704 },
+      'fps':  { name: 'Foot/detik (ft/s)', factor: 0.3048 },
+      'knot': { name: 'Knot', factor: 0.514444 }
+    }
+  },
+  data: {
+    title: '💾 Konversi Ukuran Data',
+    desc: 'Konversi byte, kilobyte, megabyte, gigabyte, terabyte (1024-based).',
+    base: 'B',
+    units: {
+      'b':  { name: 'bit', factor: 0.125 },
+      'B':  { name: 'Byte (B)', factor: 1 },
+      'KB': { name: 'Kilobyte (KB)', factor: 1024 },
+      'MB': { name: 'Megabyte (MB)', factor: 1048576 },
+      'GB': { name: 'Gigabyte (GB)', factor: 1073741824 },
+      'TB': { name: 'Terabyte (TB)', factor: 1099511627776 },
+      'PB': { name: 'Petabyte (PB)', factor: 1125899906842624 }
+    }
+  }
+};
+
+function buildUnitPanel(key) {
+  const def = unitDefs[key];
+  const panel = document.getElementById('panel-' + key);
+  const opts = Object.entries(def.units).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join('');
+  panel.innerHTML = `
+    <h2>${def.title}</h2>
+    <p class="panel-desc">${def.desc}</p>
+    <div class="field-row">
+      <div class="field">
+        <label>Nilai Asal</label>
+        <input type="number" class="form-control" id="${key}-fromVal" value="1" />
+      </div>
+      <div class="field">
+        <label>Unit Asal</label>
+        <select class="form-control" id="${key}-fromUnit">${opts}</select>
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Hasil</label>
+        <input type="number" class="form-control" id="${key}-toVal" readonly />
+      </div>
+      <div class="field">
+        <label>Unit Tujuan</label>
+        <select class="form-control" id="${key}-toUnit">${opts}</select>
+      </div>
+    </div>
+    <button class="btn" id="${key}-swap">↕ Swap Unit</button>
+    <div class="result-box mt-3 text-mono" id="${key}-fullList" style="max-height:240px"></div>`;
+
+  // default selections
+  const keys = Object.keys(def.units);
+  const fromUnit = panel.querySelector('#' + key + '-fromUnit');
+  const toUnit = panel.querySelector('#' + key + '-toUnit');
+  fromUnit.value = def.base;
+  toUnit.value = keys.find(k => k !== def.base) || keys[0];
+
+  function compute() {
+    const fv = parseFloat(panel.querySelector('#' + key + '-fromVal').value);
+    const fu = panel.querySelector('#' + key + '-fromUnit').value;
+    const tu = panel.querySelector('#' + key + '-toUnit').value;
+    if (isNaN(fv)) {
+      panel.querySelector('#' + key + '-toVal').value = '';
+      return;
+    }
+    const inBase = fv * def.units[fu].factor;
+    const out = inBase / def.units[tu].factor;
+    panel.querySelector('#' + key + '-toVal').value = formatNumber(out);
+    // Full list
+    const lines = Object.entries(def.units).map(([k, u]) => {
+      const v = inBase / u.factor;
+      return `${u.name.padEnd(22, ' ').slice(0, 22)} ${formatNumber(v)}`;
+    }).join('\n');
+    panel.querySelector('#' + key + '-fullList').textContent = lines;
+  }
+
+  ['#' + key + '-fromVal', '#' + key + '-fromUnit', '#' + key + '-toUnit'].forEach(s => {
+    panel.querySelector(s).addEventListener('input', compute);
+  });
+  panel.querySelector('#' + key + '-swap').addEventListener('click', () => {
+    const f = panel.querySelector('#' + key + '-fromUnit');
+    const t = panel.querySelector('#' + key + '-toUnit');
+    [f.value, t.value] = [t.value, f.value];
+    compute();
+  });
+  compute();
+}
+
+function formatNumber(n) {
+  if (!isFinite(n)) return '∞';
+  const abs = Math.abs(n);
+  if (abs === 0) return '0';
+  if (abs >= 1e15 || abs < 1e-6) return n.toExponential(6);
+  return parseFloat(n.toPrecision(10)).toString();
+}
+
+// ─── TEMPERATURE (special handling) ──────────────────────────
+function buildTempPanel() {
+  const panel = document.getElementById('panel-temp');
+  panel.innerHTML = `
+    <h2>🌡️ Konversi Suhu</h2>
+    <p class="panel-desc">Konversi Celsius (°C), Fahrenheit (°F), Kelvin (K), Rankine (°R).</p>
+    <div class="field-row">
+      <div class="field">
+        <label>Nilai Asal</label>
+        <input type="number" class="form-control" id="temp-fromVal" value="25" step="0.1" />
+      </div>
+      <div class="field">
+        <label>Unit Asal</label>
+        <select class="form-control" id="temp-fromUnit">
+          <option value="C">Celsius (°C)</option>
+          <option value="F">Fahrenheit (°F)</option>
+          <option value="K">Kelvin (K)</option>
+          <option value="R">Rankine (°R)</option>
+        </select>
+      </div>
+    </div>
+    <div class="stat-grid mt-3">
+      <div class="stat-card"><div class="stat-value" id="temp-C">—</div><div class="stat-label">Celsius</div></div>
+      <div class="stat-card"><div class="stat-value" id="temp-F">—</div><div class="stat-label">Fahrenheit</div></div>
+      <div class="stat-card"><div class="stat-value" id="temp-K">—</div><div class="stat-label">Kelvin</div></div>
+      <div class="stat-card"><div class="stat-value" id="temp-R">—</div><div class="stat-label">Rankine</div></div>
+    </div>`;
+  function compute() {
+    const v = parseFloat(document.getElementById('temp-fromVal').value);
+    const u = document.getElementById('temp-fromUnit').value;
+    if (isNaN(v)) return;
+    let c;
+    if (u === 'C') c = v;
+    else if (u === 'F') c = (v - 32) * 5 / 9;
+    else if (u === 'K') c = v - 273.15;
+    else c = (v - 491.67) * 5 / 9;
+    document.getElementById('temp-C').textContent = formatNumber(c) + '°';
+    document.getElementById('temp-F').textContent = formatNumber(c * 9 / 5 + 32) + '°';
+    document.getElementById('temp-K').textContent = formatNumber(c + 273.15);
+    document.getElementById('temp-R').textContent = formatNumber((c + 273.15) * 9 / 5) + '°';
+  }
+  document.getElementById('temp-fromVal').addEventListener('input', compute);
+  document.getElementById('temp-fromUnit').addEventListener('change', compute);
+  compute();
+}
+
+// Build all panels
+Object.keys(unitDefs).forEach(buildUnitPanel);
+buildTempPanel();
+
+setupToolTabs('.tool-nav button', '.tool-panel', 'length');
+
+// ─── BMI ──────────────────────────────────────────────────
+document.getElementById('btn-bmi').addEventListener('click', () => {
+  const w = parseFloat(document.getElementById('bmi-w').value);
+  const h = parseFloat(document.getElementById('bmi-h').value) / 100;
+  if (!w || !h || w <= 0 || h <= 0) return;
+  const bmi = w / (h * h);
+  document.getElementById('bmi-value').textContent = bmi.toFixed(2);
+  let cat, color;
+  if (bmi < 18.5) { cat = 'Kurus'; color = 'var(--accent)'; }
+  else if (bmi < 25) { cat = 'Normal ✓'; color = 'var(--secondary)'; }
+  else if (bmi < 30) { cat = 'Gemuk'; color = 'var(--accent)'; }
+  else { cat = 'Obesitas'; color = 'var(--danger)'; }
+  const catEl = document.getElementById('bmi-cat');
+  catEl.textContent = cat;
+  catEl.style.color = color;
+  // Ideal weight range
+  const lo = (18.5 * h * h).toFixed(1);
+  const hi = (24.9 * h * h).toFixed(1);
+  document.getElementById('bmi-ideal').textContent = `${lo} – ${hi} kg`;
+});
+document.getElementById('btn-bmi').click();
+
+// ─── AGE ──────────────────────────────────────────────────
+function setTodayDefault() {
+  const t = new Date().toISOString().split('T')[0];
+  document.getElementById('age-today').value = t;
+}
+setTodayDefault();
+
+document.getElementById('btn-age').addEventListener('click', () => {
+  hideStatus('st-age');
+  const b = document.getElementById('age-birth').value;
+  const t = document.getElementById('age-today').value;
+  if (!b) { showStatus('st-age', 'error', 'Isi tanggal lahir.'); return; }
+  const birth = new Date(b);
+  const today = t ? new Date(t) : new Date();
+  if (birth > today) { showStatus('st-age', 'error', 'Tanggal lahir di masa depan.'); return; }
+
+  let y = today.getFullYear() - birth.getFullYear();
+  let m = today.getMonth() - birth.getMonth();
+  let d = today.getDate() - birth.getDate();
+  if (d < 0) {
+    m--;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    d += prevMonth.getDate();
+  }
+  if (m < 0) { y--; m += 12; }
+
+  document.getElementById('age-y').textContent = y;
+  document.getElementById('age-m').textContent = m;
+  document.getElementById('age-d').textContent = d;
+
+  const diffMs = today - birth;
+  const totalDays = Math.floor(diffMs / 86400000);
+  document.getElementById('age-total-d').textContent = totalDays.toLocaleString();
+  document.getElementById('age-total-h').textContent = (totalDays * 24).toLocaleString();
+  document.getElementById('age-total-min').textContent = Math.floor(diffMs / 60000).toLocaleString();
+  document.getElementById('age-total-s').textContent = Math.floor(diffMs / 1000).toLocaleString();
+});
+</script>
+
+</body>
+</html>

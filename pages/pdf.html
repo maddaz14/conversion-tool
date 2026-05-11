@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PDF Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    .file-item .file-drag {
+      cursor: grab;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .file-item.dragging { opacity: 0.5; }
+    .page-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px;
+      margin: 16px 0;
+    }
+    .page-item {
+      background: var(--bg-card);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+    }
+    .page-item.selected {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary);
+    }
+    .page-item .page-num { font-weight: 700; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>📄 <span class="highlight">PDF Tools</span></h1>
+    <p>Gabungkan, pisahkan, putar, tambahkan watermark, dan urutkan ulang halaman PDF — tanpa upload ke server.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="merge"><span class="nav-emoji">📎</span> Merge PDF</button>
+        <button data-tool="split"><span class="nav-emoji">✂️</span> Split PDF</button>
+        <button data-tool="rotate"><span class="nav-emoji">🔄</span> Rotate Halaman</button>
+        <button data-tool="watermark"><span class="nav-emoji">💧</span> Watermark</button>
+        <button data-tool="reorder"><span class="nav-emoji">🔀</span> Reorder</button>
+        <button data-tool="compress"><span class="nav-emoji">🗜️</span> Compress</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+      <!-- MERGE -->
+      <div class="tool-panel" id="panel-merge">
+        <h2>📎 Merge PDF</h2>
+        <p class="panel-desc">Gabungkan beberapa file PDF menjadi satu dokumen. Urut sesuai daftar di bawah.</p>
+
+        <div class="dropzone" id="dz-merge">
+          <input type="file" id="file-merge" accept="application/pdf" multiple />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih atau tarik beberapa file PDF</h3>
+          <p>Klik tombol untuk menambah lebih banyak file</p>
+        </div>
+        <div class="file-list" id="list-merge"></div>
+
+        <button class="btn btn-primary btn-block" id="btn-merge" disabled>Gabungkan PDF</button>
+        <div class="progress-container" id="prog-merge" style="display:none">
+          <div class="progress-bar-bg"><div class="progress-fill" id="prog-merge-fill"></div></div>
+          <div class="progress-text" id="prog-merge-lab"></div>
+        </div>
+        <div class="status-alert" id="st-merge"></div>
+      </div>
+
+      <!-- SPLIT -->
+      <div class="tool-panel" id="panel-split">
+        <h2>✂️ Split PDF</h2>
+        <p class="panel-desc">Ekstrak halaman tertentu menjadi PDF terpisah. Pilih halaman dengan klik atau range (mis. 1-3,5,7-9).</p>
+
+        <div class="dropzone" id="dz-split">
+          <input type="file" id="file-split" accept="application/pdf" />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih PDF</h3>
+          <p>Format: PDF</p>
+        </div>
+        <div class="file-list" id="list-split"></div>
+
+        <div class="field hidden" id="split-pages-wrap">
+          <label>Pilih Halaman (klik untuk toggle)</label>
+          <div class="page-list" id="split-page-list"></div>
+          <div class="btn-row">
+            <button class="btn btn-sm" id="split-select-all">Pilih Semua</button>
+            <button class="btn btn-sm" id="split-deselect-all">Kosongkan</button>
+          </div>
+        </div>
+
+        <div class="field hidden" id="split-range-wrap">
+          <label>Atau ketik range halaman</label>
+          <input type="text" class="form-control" id="split-range" placeholder="contoh: 1-3,5,7-9" />
+        </div>
+
+        <div class="field hidden" id="split-mode-wrap">
+          <label>Mode</label>
+          <select class="form-control" id="split-mode">
+            <option value="single">Gabung halaman terpilih jadi 1 PDF</option>
+            <option value="separate">Pisahkan jadi PDF terpisah per halaman</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-split" disabled>Split PDF</button>
+        <div class="status-alert" id="st-split"></div>
+      </div>
+
+      <!-- ROTATE -->
+      <div class="tool-panel" id="panel-rotate">
+        <h2>🔄 Rotate Halaman PDF</h2>
+        <p class="panel-desc">Putar halaman tertentu atau semua halaman.</p>
+
+        <div class="dropzone" id="dz-rotate">
+          <input type="file" id="file-rotate" accept="application/pdf" />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih PDF</h3>
+          <p>Format: PDF</p>
+        </div>
+        <div class="file-list" id="list-rotate"></div>
+
+        <div class="field">
+          <label>Sudut Rotasi</label>
+          <select class="form-control" id="rotate-angle">
+            <option value="90">90° (searah jarum jam)</option>
+            <option value="180">180°</option>
+            <option value="270">270° (berlawanan jarum jam)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Halaman yang dirotate</label>
+          <input type="text" class="form-control" id="rotate-pages" placeholder="contoh: semua, 1-3,5,7-9" value="semua" />
+          <p class="text-muted mt-1" style="font-size:0.82rem">Ketik <code>semua</code> untuk semua halaman, atau range seperti <code>1-3,5</code></p>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-rotate" disabled>Rotate PDF</button>
+        <div class="status-alert" id="st-rotate"></div>
+      </div>
+
+      <!-- WATERMARK -->
+      <div class="tool-panel" id="panel-watermark">
+        <h2>💧 Watermark PDF</h2>
+        <p class="panel-desc">Tambahkan watermark teks di semua halaman PDF.</p>
+
+        <div class="dropzone" id="dz-wm">
+          <input type="file" id="file-wm" accept="application/pdf" />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih PDF</h3>
+          <p>Format: PDF</p>
+        </div>
+        <div class="file-list" id="list-wm"></div>
+
+        <div class="field">
+          <label>Teks Watermark</label>
+          <input type="text" class="form-control" id="wm-text" value="© Gondrong STIES" />
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Warna</label>
+            <input type="color" class="form-control" id="wm-color" value="#bdbdbd" />
+          </div>
+          <div class="field">
+            <label>Ukuran Font</label>
+            <input type="number" class="form-control" id="wm-font" value="60" min="10" max="200" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Opacity</label>
+          <div class="range-row">
+            <input type="range" id="wm-opacity" min="10" max="100" value="30" />
+            <span class="range-value" id="wm-opacity-val">30%</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Rotasi (derajat)</label>
+          <input type="number" class="form-control" id="wm-rotate" value="-45" />
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-wm" disabled>Terapkan Watermark</button>
+        <div class="status-alert" id="st-wm"></div>
+      </div>
+
+      <!-- REORDER -->
+      <div class="tool-panel" id="panel-reorder">
+        <h2>🔀 Reorder Halaman</h2>
+        <p class="panel-desc">Atur ulang urutan halaman PDF. Drag tile untuk memindahkan, atau gunakan tombol panah.</p>
+
+        <div class="dropzone" id="dz-reorder">
+          <input type="file" id="file-reorder" accept="application/pdf" />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih PDF</h3>
+          <p>Format: PDF</p>
+        </div>
+        <div class="file-list" id="list-reorder"></div>
+
+        <div class="field hidden" id="reorder-pages-wrap">
+          <label>Urutan baru (klik & drag, atau pakai tombol)</label>
+          <div class="page-list" id="reorder-page-list"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-reorder" disabled>Simpan PDF Baru</button>
+        <div class="status-alert" id="st-reorder"></div>
+      </div>
+
+      <!-- COMPRESS -->
+      <div class="tool-panel" id="panel-compress">
+        <h2>🗜️ Compress PDF</h2>
+        <p class="panel-desc">Kurangi ukuran PDF dengan merender ulang halaman pada DPI lebih rendah. Cocok untuk PDF yang berat karena gambar.</p>
+
+        <div class="dropzone" id="dz-compress">
+          <input type="file" id="file-compress" accept="application/pdf" />
+          <div class="drop-icon">☁️</div>
+          <h3>Pilih PDF</h3>
+          <p>Format: PDF</p>
+        </div>
+        <div class="file-list" id="list-compress"></div>
+
+        <div class="field">
+          <label>Tingkat Kompresi</label>
+          <select class="form-control" id="compress-level">
+            <option value="1.0">Rendah (kualitas tinggi)</option>
+            <option value="0.75" selected>Sedang</option>
+            <option value="0.5">Tinggi</option>
+            <option value="0.35">Ekstrim (kualitas rendah)</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-compress" disabled>Kompres PDF</button>
+        <div class="progress-container" id="prog-compress" style="display:none">
+          <div class="progress-bar-bg"><div class="progress-fill" id="prog-compress-fill"></div></div>
+          <div class="progress-text" id="prog-compress-lab"></div>
+        </div>
+        <div class="status-alert" id="st-compress"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '📄 PDF Tools' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'merge');
+
+const { PDFDocument, degrees, rgb, StandardFonts } = PDFLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+function parsePageRange(input, total) {
+  if (!input || input.trim().toLowerCase() === 'semua' || input.trim().toLowerCase() === 'all') {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const pages = new Set();
+  input.split(',').forEach(part => {
+    const t = part.trim();
+    if (!t) return;
+    if (t.includes('-')) {
+      const [a, b] = t.split('-').map(n => parseInt(n.trim()));
+      if (!isNaN(a) && !isNaN(b)) {
+        for (let i = Math.min(a, b); i <= Math.max(a, b); i++) {
+          if (i >= 1 && i <= total) pages.add(i);
+        }
+      }
+    } else {
+      const n = parseInt(t);
+      if (!isNaN(n) && n >= 1 && n <= total) pages.add(n);
+    }
+  });
+  return [...pages].sort((a, b) => a - b);
+}
+
+// ─── MERGE ──────────────────────────────────────────────────
+let mergeFiles = [];
+function renderMergeList() {
+  const list = document.getElementById('list-merge');
+  if (mergeFiles.length === 0) { list.innerHTML = ''; document.getElementById('btn-merge').disabled = true; return; }
+  list.innerHTML = mergeFiles.map((f, i) => `
+    <div class="file-item" draggable="true" data-idx="${i}">
+      <span class="file-drag">⋮⋮</span>
+      <span>📄</span>
+      <span class="file-name">${i + 1}. ${f.name}</span>
+      <span class="file-meta">${formatBytes(f.size)}</span>
+      <button class="btn-remove" data-remove="${i}" aria-label="Hapus">✕</button>
+    </div>`).join('');
+  // Wire remove
+  list.querySelectorAll('[data-remove]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      mergeFiles.splice(parseInt(b.dataset.remove), 1);
+      renderMergeList();
+    });
+  });
+  // Simple drag reordering
+  let dragIdx = null;
+  list.querySelectorAll('.file-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragIdx = parseInt(item.dataset.idx);
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', () => item.classList.remove('dragging'));
+    item.addEventListener('dragover', e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; });
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const target = parseInt(item.dataset.idx);
+      if (dragIdx === null || target === dragIdx) return;
+      const [moved] = mergeFiles.splice(dragIdx, 1);
+      mergeFiles.splice(target, 0, moved);
+      renderMergeList();
+    });
+  });
+  document.getElementById('btn-merge').disabled = mergeFiles.length < 2;
+}
+
+setupDropzone('dz-merge', 'file-merge', files => {
+  for (const f of files) mergeFiles.push(f);
+  renderMergeList();
+});
+
+document.getElementById('btn-merge').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-merge');
+  btn.disabled = true;
+  hideStatus('st-merge');
+  try {
+    const merged = await PDFDocument.create();
+    for (let i = 0; i < mergeFiles.length; i++) {
+      showProgress('prog-merge', 'prog-merge-fill', 'prog-merge-lab',
+        Math.round((i / mergeFiles.length) * 100), `Memproses ${i + 1}/${mergeFiles.length}: ${mergeFiles[i].name}`);
+      const bytes = await mergeFiles[i].arrayBuffer();
+      const pdf = await PDFDocument.load(bytes);
+      const copied = await merged.copyPages(pdf, pdf.getPageIndices());
+      copied.forEach(p => merged.addPage(p));
+    }
+    showProgress('prog-merge', 'prog-merge-fill', 'prog-merge-lab', 100, 'Menyimpan...');
+    const out = await merged.save();
+    downloadBlob(new Blob([out], { type: 'application/pdf' }), 'merged.pdf');
+    hideProgress('prog-merge');
+    showStatus('st-merge', 'success', `Berhasil menggabungkan ${mergeFiles.length} PDF! (${formatBytes(out.byteLength)})`);
+  } catch (e) {
+    console.error(e);
+    hideProgress('prog-merge');
+    showStatus('st-merge', 'error', e.message);
+  } finally {
+    btn.disabled = mergeFiles.length < 2;
+  }
+});
+
+// ─── SPLIT ──────────────────────────────────────────────────
+let splitFile = null;
+let splitTotal = 0;
+let splitSelected = new Set();
+
+setupDropzone('dz-split', 'file-split', async files => {
+  splitFile = files[0];
+  document.getElementById('list-split').innerHTML = `
+    <div class="file-item"><span>📄</span>
+      <span class="file-name">${splitFile.name}</span>
+      <span class="file-meta">${formatBytes(splitFile.size)}</span>
+    </div>`;
+  try {
+    const bytes = await splitFile.arrayBuffer();
+    const pdf = await PDFDocument.load(bytes);
+    splitTotal = pdf.getPageCount();
+    splitSelected = new Set();
+    const list = document.getElementById('split-page-list');
+    list.innerHTML = Array.from({ length: splitTotal }, (_, i) => `
+      <div class="page-item" data-page="${i + 1}">
+        <div class="page-num">${i + 1}</div>
+        <div style="font-size:0.7rem">halaman</div>
+      </div>`).join('');
+    list.querySelectorAll('.page-item').forEach(p => {
+      p.addEventListener('click', () => {
+        const n = parseInt(p.dataset.page);
+        if (splitSelected.has(n)) splitSelected.delete(n); else splitSelected.add(n);
+        p.classList.toggle('selected');
+        document.getElementById('btn-split').disabled = splitSelected.size === 0 && !document.getElementById('split-range').value.trim();
+      });
+    });
+    document.getElementById('split-pages-wrap').classList.remove('hidden');
+    document.getElementById('split-range-wrap').classList.remove('hidden');
+    document.getElementById('split-mode-wrap').classList.remove('hidden');
+    document.getElementById('btn-split').disabled = false;
+  } catch (e) {
+    showStatus('st-split', 'error', 'Gagal membaca PDF: ' + e.message);
+  }
+});
+
+document.getElementById('split-select-all').addEventListener('click', () => {
+  document.querySelectorAll('#split-page-list .page-item').forEach(p => {
+    p.classList.add('selected');
+    splitSelected.add(parseInt(p.dataset.page));
+  });
+});
+document.getElementById('split-deselect-all').addEventListener('click', () => {
+  document.querySelectorAll('#split-page-list .page-item').forEach(p => p.classList.remove('selected'));
+  splitSelected.clear();
+});
+
+document.getElementById('btn-split').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-split');
+  btn.disabled = true;
+  hideStatus('st-split');
+  try {
+    const rangeText = document.getElementById('split-range').value.trim();
+    const mode = document.getElementById('split-mode').value;
+    let pages = rangeText ? parsePageRange(rangeText, splitTotal) : [...splitSelected].sort((a, b) => a - b);
+    if (pages.length === 0) throw new Error('Tidak ada halaman terpilih.');
+    const bytes = await splitFile.arrayBuffer();
+    const src = await PDFDocument.load(bytes);
+
+    if (mode === 'single') {
+      const out = await PDFDocument.create();
+      const copied = await out.copyPages(src, pages.map(p => p - 1));
+      copied.forEach(p => out.addPage(p));
+      const result = await out.save();
+      downloadBlob(new Blob([result], { type: 'application/pdf' }), `${baseName(splitFile)}_split.pdf`);
+      showStatus('st-split', 'success', `Berhasil! ${pages.length} halaman digabung ke PDF baru.`);
+    } else {
+      for (const p of pages) {
+        const out = await PDFDocument.create();
+        const [copied] = await out.copyPages(src, [p - 1]);
+        out.addPage(copied);
+        const result = await out.save();
+        downloadBlob(new Blob([result], { type: 'application/pdf' }), `${baseName(splitFile)}_hal${p}.pdf`);
+      }
+      showStatus('st-split', 'success', `Berhasil! ${pages.length} halaman diunduh sebagai file terpisah.`);
+    }
+  } catch (e) {
+    showStatus('st-split', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─── ROTATE ──────────────────────────────────────────────────
+let rotateFile = null;
+setupDropzone('dz-rotate', 'file-rotate', files => {
+  rotateFile = files[0];
+  document.getElementById('list-rotate').innerHTML = `
+    <div class="file-item"><span>📄</span>
+      <span class="file-name">${rotateFile.name}</span>
+      <span class="file-meta">${formatBytes(rotateFile.size)}</span>
+    </div>`;
+  document.getElementById('btn-rotate').disabled = false;
+});
+
+document.getElementById('btn-rotate').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-rotate');
+  btn.disabled = true;
+  hideStatus('st-rotate');
+  try {
+    const angle = parseInt(document.getElementById('rotate-angle').value);
+    const pagesText = document.getElementById('rotate-pages').value;
+    const bytes = await rotateFile.arrayBuffer();
+    const pdf = await PDFDocument.load(bytes);
+    const total = pdf.getPageCount();
+    const pages = parsePageRange(pagesText, total);
+    pages.forEach(n => {
+      const page = pdf.getPage(n - 1);
+      const current = page.getRotation().angle;
+      page.setRotation(degrees((current + angle) % 360));
+    });
+    const out = await pdf.save();
+    downloadBlob(new Blob([out], { type: 'application/pdf' }), `${baseName(rotateFile)}_rotated.pdf`);
+    showStatus('st-rotate', 'success', `Berhasil rotate ${pages.length} halaman.`);
+  } catch (e) {
+    showStatus('st-rotate', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─── WATERMARK ──────────────────────────────────────────────────
+let wmFile = null;
+setupDropzone('dz-wm', 'file-wm', files => {
+  wmFile = files[0];
+  document.getElementById('list-wm').innerHTML = `
+    <div class="file-item"><span>📄</span>
+      <span class="file-name">${wmFile.name}</span>
+      <span class="file-meta">${formatBytes(wmFile.size)}</span>
+    </div>`;
+  document.getElementById('btn-wm').disabled = false;
+});
+
+bindRange('wm-opacity', 'wm-opacity-val');
+
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return {
+    r: parseInt(hex.slice(0, 2), 16) / 255,
+    g: parseInt(hex.slice(2, 4), 16) / 255,
+    b: parseInt(hex.slice(4, 6), 16) / 255
+  };
+}
+
+function bindRange(rangeId, labelId, suffix = '%') {
+  const r = document.getElementById(rangeId);
+  const l = document.getElementById(labelId);
+  const update = () => { l.textContent = r.value + suffix; };
+  r.addEventListener('input', update);
+  update();
+}
+
+document.getElementById('btn-wm').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-wm');
+  btn.disabled = true;
+  hideStatus('st-wm');
+  try {
+    const text = document.getElementById('wm-text').value || 'Watermark';
+    const colorHex = document.getElementById('wm-color').value;
+    const fontSize = parseInt(document.getElementById('wm-font').value);
+    const opacity = parseInt(document.getElementById('wm-opacity').value) / 100;
+    const rotation = parseInt(document.getElementById('wm-rotate').value);
+    const c = hexToRgb(colorHex);
+    const bytes = await wmFile.arrayBuffer();
+    const pdf = await PDFDocument.load(bytes);
+    const font = await pdf.embedFont(StandardFonts.HelveticaBold);
+    const pages = pdf.getPages();
+    pages.forEach(page => {
+      const { width, height } = page.getSize();
+      const tw = font.widthOfTextAtSize(text, fontSize);
+      page.drawText(text, {
+        x: (width - tw) / 2,
+        y: height / 2,
+        size: fontSize,
+        font,
+        color: rgb(c.r, c.g, c.b),
+        opacity,
+        rotate: degrees(rotation)
+      });
+    });
+    const out = await pdf.save();
+    downloadBlob(new Blob([out], { type: 'application/pdf' }), `${baseName(wmFile)}_wm.pdf`);
+    showStatus('st-wm', 'success', `Watermark ditambahkan di ${pages.length} halaman.`);
+  } catch (e) {
+    showStatus('st-wm', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─── REORDER ──────────────────────────────────────────────────
+let reorderFile = null;
+let reorderOrder = [];
+setupDropzone('dz-reorder', 'file-reorder', async files => {
+  reorderFile = files[0];
+  document.getElementById('list-reorder').innerHTML = `
+    <div class="file-item"><span>📄</span>
+      <span class="file-name">${reorderFile.name}</span>
+      <span class="file-meta">${formatBytes(reorderFile.size)}</span>
+    </div>`;
+  try {
+    const bytes = await reorderFile.arrayBuffer();
+    const pdf = await PDFDocument.load(bytes);
+    const total = pdf.getPageCount();
+    reorderOrder = Array.from({ length: total }, (_, i) => i + 1);
+    renderReorder();
+    document.getElementById('reorder-pages-wrap').classList.remove('hidden');
+    document.getElementById('btn-reorder').disabled = false;
+  } catch (e) {
+    showStatus('st-reorder', 'error', e.message);
+  }
+});
+
+function renderReorder() {
+  const list = document.getElementById('reorder-page-list');
+  list.innerHTML = reorderOrder.map((p, i) => `
+    <div class="page-item" draggable="true" data-pos="${i}">
+      <div class="page-num">${p}</div>
+      <div style="font-size:0.7rem">posisi #${i + 1}</div>
+      <div style="margin-top:4px;display:flex;gap:4px;justify-content:center">
+        <button class="btn btn-sm" data-move-up="${i}">↑</button>
+        <button class="btn btn-sm" data-move-down="${i}">↓</button>
+      </div>
+    </div>`).join('');
+  list.querySelectorAll('[data-move-up]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const i = parseInt(b.dataset.moveUp);
+      if (i > 0) {
+        [reorderOrder[i - 1], reorderOrder[i]] = [reorderOrder[i], reorderOrder[i - 1]];
+        renderReorder();
+      }
+    });
+  });
+  list.querySelectorAll('[data-move-down]').forEach(b => {
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      const i = parseInt(b.dataset.moveDown);
+      if (i < reorderOrder.length - 1) {
+        [reorderOrder[i + 1], reorderOrder[i]] = [reorderOrder[i], reorderOrder[i + 1]];
+        renderReorder();
+      }
+    });
+  });
+  // Drag
+  let dragIdx = null;
+  list.querySelectorAll('.page-item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      dragIdx = parseInt(item.dataset.pos);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragover', e => e.preventDefault());
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      const target = parseInt(item.dataset.pos);
+      if (dragIdx === null || target === dragIdx) return;
+      const [moved] = reorderOrder.splice(dragIdx, 1);
+      reorderOrder.splice(target, 0, moved);
+      renderReorder();
+    });
+  });
+}
+
+document.getElementById('btn-reorder').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-reorder');
+  btn.disabled = true;
+  hideStatus('st-reorder');
+  try {
+    const bytes = await reorderFile.arrayBuffer();
+    const src = await PDFDocument.load(bytes);
+    const out = await PDFDocument.create();
+    const copied = await out.copyPages(src, reorderOrder.map(p => p - 1));
+    copied.forEach(p => out.addPage(p));
+    const result = await out.save();
+    downloadBlob(new Blob([result], { type: 'application/pdf' }), `${baseName(reorderFile)}_reordered.pdf`);
+    showStatus('st-reorder', 'success', `Urutan baru disimpan: ${reorderOrder.join(' → ')}`);
+  } catch (e) {
+    showStatus('st-reorder', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ─── COMPRESS (rasterize via pdf.js + jsPDF) ──────────────────
+let compressFile = null;
+setupDropzone('dz-compress', 'file-compress', files => {
+  compressFile = files[0];
+  document.getElementById('list-compress').innerHTML = `
+    <div class="file-item"><span>📄</span>
+      <span class="file-name">${compressFile.name}</span>
+      <span class="file-meta">${formatBytes(compressFile.size)}</span>
+    </div>`;
+  document.getElementById('btn-compress').disabled = false;
+});
+
+document.getElementById('btn-compress').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-compress');
+  btn.disabled = true;
+  hideStatus('st-compress');
+  try {
+    const scale = parseFloat(document.getElementById('compress-level').value);
+    const quality = Math.max(0.4, scale - 0.1);
+    const ab = await compressFile.arrayBuffer();
+    const src = await pdfjsLib.getDocument({ data: ab }).promise;
+    const total = src.numPages;
+    const { jsPDF } = window.jspdf;
+    let out = null;
+    for (let i = 1; i <= total; i++) {
+      showProgress('prog-compress', 'prog-compress-fill', 'prog-compress-lab',
+        Math.round((i / total) * 100), `Halaman ${i}/${total}...`);
+      const page = await src.getPage(i);
+      const vp = page.getViewport({ scale });
+      const canvas = document.createElement('canvas');
+      canvas.width = vp.width; canvas.height = vp.height;
+      await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      if (!out) {
+        out = new jsPDF({ orientation: vp.width > vp.height ? 'l' : 'p', unit: 'px', format: [vp.width, vp.height] });
+      } else {
+        out.addPage([vp.width, vp.height], vp.width > vp.height ? 'l' : 'p');
+      }
+      out.addImage(dataUrl, 'JPEG', 0, 0, vp.width, vp.height);
+    }
+    const blob = out.output('blob');
+    hideProgress('prog-compress');
+    downloadBlob(blob, `${baseName(compressFile)}_compressed.pdf`);
+    const saved = ((1 - blob.size / compressFile.size) * 100).toFixed(1);
+    showStatus('st-compress', 'success',
+      `Sebelum: ${formatBytes(compressFile.size)} → Setelah: ${formatBytes(blob.size)} (hemat ${saved}%)`);
+  } catch (e) {
+    console.error(e);
+    hideProgress('prog-compress');
+    showStatus('st-compress', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>
