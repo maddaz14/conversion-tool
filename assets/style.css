@@ -1023,10 +1023,25 @@ footer .dev-credit span { color: var(--primary); }
   .grid { overflow-x: hidden; }
 
   .modal { padding: 26px 20px; }
-  .dropzone { padding: 30px 16px; }
+
+  /* Dropzone (seret file) - lebih kecil untuk tablet/HP */
+  .dropzone { padding: 26px 14px; }
+  .dropzone .drop-icon { font-size: 2.3rem; margin-bottom: 10px; }
+  .dropzone h3 { font-size: 1.0rem; margin-bottom: 6px; }
+  .dropzone p { font-size: 0.84rem; }
+
   .modal-overlay { padding: 12px; }
   .field-row { grid-template-columns: 1fr; }
   .field-row-3 { grid-template-columns: 1fr 1fr; }
+
+  /* Tombol/tabs di atas (tool-nav & filter) */
+  .tool-nav button { padding: 9px 10px; font-size: 0.9rem; gap: 8px; }
+  .tool-nav button .nav-emoji { font-size: 0.95rem; }
+
+  .filter-btn { padding: 8px 12px; font-size: 0.86rem; }
+
+  /* Tombol umum (btn) yang sering dipakai di atas tool */
+  .btn { padding: 11px 14px; font-size: 0.92rem; }
 }
 
 @media (max-width: 480px) {
