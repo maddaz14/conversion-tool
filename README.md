@@ -4,7 +4,7 @@
 # 🚀 Gondrong STIES — Online Tools Suite 🎯
 
 [![Live Demo](https://img.shields.io/badge/🌐_LIVE_DEMO-00D4FF?style=for-the-badge&logo=vercel&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
-[![Tools Count](https://img.shields.io/badge/🔥_90%2B_TOOLS-FF6B6B?style=for-the-badge&logo=fire&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
+[![Tools Count](https://img.shields.io/badge/🔥_91%2B_TOOLS-FF6B6B?style=for-the-badge&logo=fire&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 [![Privacy First](https://img.shields.io/badge/🔒_100%25_PRIVACY-4ECDC4?style=for-the-badge&logo=shield&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 [![Browser Based](https://img.shields.io/badge/⚡_BROWSER_ONLY-FFD93D?style=for-the-badge&logo=chrome&logoColor=black&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 
@@ -12,7 +12,7 @@
 
 ---
 
-### 🎪 **90+ POWERFUL TOOLS** • **100% FREE** • **NO SERVER UPLOAD** • **INSTANT PROCESSING**
+### 🎪 **91+ POWERFUL TOOLS** • **100% FREE** • **NO SERVER UPLOAD** • **INSTANT PROCESSING**
 
 > ✨ **All processing happens in YOUR browser** - Your files never leave your device! 🔐
 
@@ -101,7 +101,7 @@
 | 🔍 Regex Tester | Test regular expressions | ✅ **Active** |
 | 🎯 URL Parser | Parse and analyze URLs | ✅ **Active** |
 
-### 📱 **APK BUILDER** (6 Tools)
+### 📱 **APK BUILDER** (7 Tools)
 | Tool | Description | Status |
 |:---:|:---:|:---:|
 | 📄 AndroidManifest Generator | Generate `AndroidManifest.xml` from a form | ✅ **Active** |
@@ -110,6 +110,8 @@
 | 🌈 colors.xml Generator | Palette builder with Material preset | ✅ **Active** |
 | 🔐 Permission Picker | Pick Android permissions → manifest snippet | ✅ **Active** |
 | ⚙️ build.gradle Snippet | App-module Gradle config generator | ✅ **Active** |
+| 🌐 HTML/URL to APK | **NEW!** Konversi HTML/ZIP/URL → APK siap install (5-10 min) | ✅ **Active** |
+| 🌐 HTML/URL to APK | Konversi HTML file atau URL menjadi Android APK wrapper | ✅ **Active** |
 
 ### 🌐 **MULTI LANGUAGE** (6 Tools)
 | Tool | Description | Status |
@@ -153,7 +155,29 @@
 
 ---
 
-## 🚀 **HOW TO USE** (Super Simple!)
+## 🚀 **APK BUILDER SETUP** (New Feature!)
+
+**HTML/URL to APK Converter** - Build Android APK langsung dari browser!
+
+### **Cara Setup:**
+1. **Setup Supabase Database** (gratis)
+2. **Setup GitHub Repository** dengan Actions
+3. **Deploy ke Vercel** dengan environment variables
+4. **Test build APK** dari HTML/URL/ZIP
+
+📖 **Panduan lengkap**: Lihat [`SETUP.md`](SETUP.md)
+
+### **Fitur:**
+- 🌐 **URL Website** → APK
+- 📄 **HTML File** → APK  
+- 📦 **ZIP Project** → APK
+- ⏱️ **5-10 menit build time**
+- 📱 **Mobile-friendly**
+- 💰 **100% gratis**
+
+---
+
+## 🛠️ **HOW TO USE** (Super Simple!)
 
 <div align="center">
 

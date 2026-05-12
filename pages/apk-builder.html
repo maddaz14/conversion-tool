@@ -41,6 +41,7 @@
         <button data-tool="colors"><span class="nav-emoji">🌈</span> colors.xml</button>
         <button data-tool="perms"><span class="nav-emoji">🔐</span> Permissions Picker</button>
         <button data-tool="gradle"><span class="nav-emoji">⚙️</span> build.gradle</button>
+        <button data-tool="html2apk"><span class="nav-emoji">🌐</span> HTML/URL to APK</button>
       </div>
     </aside>
 
@@ -259,6 +260,80 @@
           <button class="btn btn-sm" id="gr-dl">⬇️ Unduh build.gradle</button>
         </div>
         <div class="status-alert" id="st-gr"></div>
+      </div>
+
+      <!-- HTML/URL TO APK -->
+      <div class="tool-panel" id="panel-html2apk">
+        <h2>🌐 HTML/URL to APK Converter</h2>
+        <p class="panel-desc">Konversi file HTML, ZIP, atau URL website menjadi aplikasi Android APK. APK akan dibangun menggunakan Cordova dan siap install.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Input Type</label>
+            <select class="form-control" id="h2a-type">
+              <option value="url">📍 URL Website</option>
+              <option value="html">📄 File HTML</option>
+              <option value="zip">📦 File ZIP</option>
+            </select>
+          </div>
+          <div class="field" id="h2a-input-field">
+            <label>Website URL</label>
+            <input type="text" class="form-control" id="h2a-input" placeholder="https://example.com" />
+          </div>
+        </div>
+
+        <div id="h2a-file-zone" style="display: none;">
+          <div class="dropzone" id="dz-html">
+            <input type="file" id="file-html" accept=".html,.htm,.zip" />
+            <div class="drop-icon">📄</div>
+            <h3>Pilih file HTML atau ZIP</h3>
+            <p>Drag & drop atau klik untuk upload</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Package Name</label>
+            <input type="text" class="form-control" id="h2a-pkg" value="com.html.webapp" />
+          </div>
+          <div class="field">
+            <label>App Name</label>
+            <input type="text" class="form-control" id="h2a-appname" value="My Web App" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Version Code</label>
+            <input type="number" class="form-control" id="h2a-vcode" value="1" min="1" />
+          </div>
+          <div class="field">
+            <label>Version Name</label>
+            <input type="text" class="form-control" id="h2a-vname" value="1.0.0" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-h2a-gen">🚀 Build APK (5-10 menit)</button>
+
+        <div id="build-progress" style="display: none;">
+          <div class="field mt-3">
+            <label>Build Status</label>
+            <div class="status-alert" id="build-status">⏳ Initializing build...</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div id="build-result" style="display: none;">
+          <div class="field mt-3">
+            <label>✅ APK Ready!</label>
+            <div class="status-alert success" id="result-status"></div>
+          </div>
+          <button class="btn btn-success btn-block" id="btn-download-apk">⬇️ Download APK</button>
+        </div>
+
+        <div class="status-alert" id="st-h2a"></div>
       </div>
 
     </div>
@@ -589,7 +664,175 @@ document.getElementById('btn-gr-gen').addEventListener('click', () => {
 });
 document.getElementById('gr-copy').addEventListener('click', () => copyToClipboard(document.getElementById('gr-out').textContent, 'st-gr'));
 document.getElementById('gr-dl').addEventListener('click', () => downloadText(document.getElementById('gr-out').textContent || buildGradle(), 'build.gradle', 'text/plain'));
-</script>
+
+// ─── HTML/URL TO APK ───────────────────────────────────────
+let h2aContent = '';
+let currentBuildId = null;
+let statusCheckInterval = null;
+
+document.getElementById('h2a-type').addEventListener('change', (e) => {
+  const isUrl = e.target.value === 'url';
+  const isZip = e.target.value === 'zip';
+  document.getElementById('h2a-input-field').innerHTML = isUrl
+    ? '<label>Website URL</label><input type="text" class="form-control" id="h2a-input" placeholder="https://example.com" />'
+    : '<label>File HTML/ZIP</label><div id="h2a-file-input"></div>';
+  document.getElementById('h2a-file-zone').style.display = isUrl ? 'none' : 'block';
+  if (!isUrl) {
+    setupDropzone('dz-html', 'file-html', files => {
+      const f = files[0];
+      const isHtml = f.name.match(/\.(html|htm)$/i);
+      const isZipFile = f.name.match(/\.zip$/i);
+      if (!isHtml && !isZipFile) {
+        showStatus('st-h2a', 'error', 'File harus HTML (.html/.htm) atau ZIP (.zip).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        h2aContent = e.target.result;
+        showStatus('st-h2a', 'success', `File loaded: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+});
+
+document.getElementById('btn-h2a-gen').addEventListener('click', async () => {
+  const type = document.getElementById('h2a-type').value;
+  const packageName = document.getElementById('h2a-pkg').value.trim();
+  const appName = document.getElementById('h2a-appname').value.trim();
+  const versionCode = document.getElementById('h2a-vcode').value;
+  const versionName = document.getElementById('h2a-vname').value.trim();
+
+  // Validation
+  if (!packageName || !appName) {
+    showStatus('st-h2a', 'error', 'Package name dan app name harus diisi.');
+    return;
+  }
+
+  if (type === 'url') {
+    const url = document.getElementById('h2a-input').value.trim();
+    if (!url.match(/^https?:\/\//)) {
+      showStatus('st-h2a', 'error', 'URL harus dimulai dengan http:// atau https://');
+      return;
+    }
+    h2aContent = url;
+  } else {
+    if (!h2aContent) {
+      showStatus('st-h2a', 'error', 'Pilih file HTML atau ZIP terlebih dahulu.');
+      return;
+    }
+  }
+
+  // Show progress
+  document.getElementById('build-progress').style.display = 'block';
+  document.getElementById('build-result').style.display = 'none';
+  document.getElementById('btn-h2a-gen').disabled = true;
+  document.getElementById('btn-h2a-gen').textContent = '🚀 Building APK...';
+
+  try {
+    // Trigger build
+    const response = await fetch('/api/trigger-build', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type,
+        content: h2aContent,
+        packageName,
+        appName,
+        versionCode,
+        versionName
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to trigger build');
+    }
+
+    currentBuildId = result.buildId;
+    showStatus('st-h2a', 'success', 'Build started! Monitoring progress...');
+
+    // Start polling for status
+    startStatusPolling();
+
+  } catch (error) {
+    console.error('Build trigger error:', error);
+    showStatus('st-h2a', 'error', `Build failed: ${error.message}`);
+    resetBuildUI();
+  }
+});
+
+function startStatusPolling() {
+  let pollCount = 0;
+  const maxPolls = 120; // 10 minutes max (5 second intervals)
+
+  statusCheckInterval = setInterval(async () => {
+    try {
+      pollCount++;
+      const progress = Math.min((pollCount / maxPolls) * 100, 90); // Max 90% until complete
+      document.getElementById('progress-fill').style.width = `${progress}%`;
+
+      const response = await fetch(`/api/build-status?buildId=${currentBuildId}`);
+      const status = await response.json();
+
+      document.getElementById('build-status').textContent = getStatusMessage(status.status);
+
+      if (status.status === 'completed') {
+        clearInterval(statusCheckInterval);
+        showBuildResult(status);
+      } else if (status.status === 'failed') {
+        clearInterval(statusCheckInterval);
+        showStatus('st-h2a', 'error', `Build failed: ${status.error_message || 'Unknown error'}`);
+        resetBuildUI();
+      } else if (pollCount >= maxPolls) {
+        clearInterval(statusCheckInterval);
+        showStatus('st-h2a', 'error', 'Build timeout. Please try again.');
+        resetBuildUI();
+      }
+    } catch (error) {
+      console.error('Status check error:', error);
+    }
+  }, 5000); // Check every 5 seconds
+}
+
+function getStatusMessage(status) {
+  switch (status) {
+    case 'queued': return '⏳ Build queued...';
+    case 'building': return '🔨 Building APK...';
+    case 'signing': return '✍️ Signing APK...';
+    case 'uploading': return '📤 Uploading APK...';
+    case 'completed': return '✅ Build completed!';
+    case 'failed': return '❌ Build failed';
+    default: return `🔄 ${status}...`;
+  }
+}
+
+function showBuildResult(status) {
+  document.getElementById('build-progress').style.display = 'none';
+  document.getElementById('build-result').style.display = 'block';
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const sizeMB = status.apk_size ? (status.apk_size / 1024 / 1024).toFixed(1) : 'Unknown';
+  document.getElementById('result-status').textContent = `APK berhasil dibuat! Ukuran: ${sizeMB} MB`;
+
+  document.getElementById('btn-download-apk').onclick = () => {
+    window.open(status.apk_url, '_blank');
+  };
+
+  resetBuildUI();
+}
+
+function resetBuildUI() {
+  document.getElementById('btn-h2a-gen').disabled = false;
+  document.getElementById('btn-h2a-gen').textContent = '🚀 Build APK (5-10 menit)';
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
+    statusCheckInterval = null;
+  }
+}</script>
 
 </body>
 </html>

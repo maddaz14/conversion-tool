@@ -1,0 +1,136 @@
+name: Build APK from HTML/URL
+
+on:
+  repository_dispatch:
+    types: [build-apk]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Update build status to building
+      run: |
+        curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"status": "building"}'
+
+    - name: Install Cordova
+      run: npm install -g cordova@latest
+
+    - name: Create Cordova project
+      run: |
+        cordova create apk-build-${{ github.event.client_payload.build_id }} ${{ github.event.client_payload.package_name }} ${{ github.event.client_payload.app_name }}
+        cd apk-build-${{ github.event.client_payload.build_id }}
+        cordova platform add android
+
+    - name: Configure Cordova project
+      run: |
+        cd apk-build-${{ github.event.client_payload.build_id }}
+        # Update config.xml
+        sed -i "s/<widget/<widget version=\"${{ github.event.client_payload.version_name }}\" android-versionCode=\"${{ github.event.client_payload.version_code }}\"/" config.xml
+
+    - name: Add content based on type
+      run: |
+        cd apk-build-${{ github.event.client_payload.build_id }}
+        if [ "${{ github.event.client_payload.type }}" = "url" ]; then
+          # Create HTML that loads the URL
+          cat > www/index.html << EOF
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>${{ github.event.client_payload.app_name }}</title>
+        </head>
+        <body>
+            <iframe src="${{ github.event.client_payload.content }}" style="width:100%; height:100vh; border:none;"></iframe>
+        </body>
+        </html>
+        EOF
+        elif [ "${{ github.event.client_payload.type }}" = "html" ]; then
+          # Use the HTML content directly
+          echo "${{ github.event.client_payload.content }}" > www/index.html
+        else
+          # For ZIP, extract to www folder
+          echo "${{ github.event.client_payload.content }}" | base64 -d > content.zip
+          unzip content.zip -d www/
+        fi
+
+    - name: Build APK
+      run: |
+        cd apk-build-${{ github.event.client_payload.build_id }}
+        cordova build android --release
+
+    - name: Update build status to signing
+      run: |
+        curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"status": "signing"}'
+
+    - name: Sign APK
+      run: |
+        cd apk-build-${{ github.event.client_payload.build_id }}
+        # Create keystore if not exists
+        keytool -genkeypair -v -keystore release.keystore -alias release -keyalg RSA -keysize 2048 -validity 10000 -storepass password -keypass password -dname "CN=Unknown, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown"
+        # Sign APK
+        jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore release.keystore -storepass password -keypass password platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk release
+        # Align APK
+        zipalign -v 4 platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk ${{ github.event.client_payload.app_name }}.apk
+
+    - name: Update build status to uploading
+      run: |
+        curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"status": "uploading"}'
+
+    - name: Upload APK to GitHub Releases
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: apk-${{ github.event.client_payload.build_id }}
+        name: APK Build ${{ github.event.client_payload.build_id }}
+        files: apk-build-${{ github.event.client_payload.build_id }}/${{ github.event.client_payload.app_name }}.apk
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Update build status in Supabase
+      run: |
+        APK_URL="https://github.com/${{ github.repository }}/releases/download/apk-${{ github.event.client_payload.build_id }}/${{ github.event.client_payload.app_name }}.apk"
+        APK_SIZE=$(stat -c%s "apk-build-${{ github.event.client_payload.build_id }}/${{ github.event.client_payload.app_name }}.apk")
+
+        curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"status\": \"completed\", \"apk_url\": \"$APK_URL\", \"apk_size\": $APK_SIZE}"
+
+    - name: Update build status to failed on error
+      if: failure()
+      run: |
+        ERROR_MSG=$(echo "${{ github.event.head_commit.message }}" | head -c 500)
+        curl -X PATCH "${{ secrets.SUPABASE_URL }}/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"status\": \"failed\", \"error_message\": \"$ERROR_MSG\"}"

@@ -1,10 +1,18 @@
 {
-  "name": "file-converter",
+  "name": "conversion-tool",
   "version": "1.0.0",
-  "description": "File format converter tool",
+  "description": "Online tools suite with APK builder",
   "scripts": {
     "dev": "npx serve .",
     "build": "echo 'Static site, no build needed'",
     "start": "npx serve ."
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "@supabase/supabase-js": "^2.39.0",
+    "next": "^14.0.0"
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
   }
 }
