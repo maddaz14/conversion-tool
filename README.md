@@ -4,7 +4,7 @@
 # 🚀 Gondrong STIES — Online Tools Suite 🎯
 
 [![Live Demo](https://img.shields.io/badge/🌐_LIVE_DEMO-00D4FF?style=for-the-badge&logo=vercel&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
-[![Tools Count](https://img.shields.io/badge/🔥_60%2B_TOOLS-FF6B6B?style=for-the-badge&logo=fire&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
+[![Tools Count](https://img.shields.io/badge/🔥_90%2B_TOOLS-FF6B6B?style=for-the-badge&logo=fire&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 [![Privacy First](https://img.shields.io/badge/🔒_100%25_PRIVACY-4ECDC4?style=for-the-badge&logo=shield&logoColor=white&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 [![Browser Based](https://img.shields.io/badge/⚡_BROWSER_ONLY-FFD93D?style=for-the-badge&logo=chrome&logoColor=black&labelColor=1a1a2e)](https://conversion-tool-puce.vercel.app/)
 
@@ -12,7 +12,7 @@
 
 ---
 
-### 🎪 **60+ POWERFUL TOOLS** • **100% FREE** • **NO SERVER UPLOAD** • **INSTANT PROCESSING**
+### 🎪 **90+ POWERFUL TOOLS** • **100% FREE** • **NO SERVER UPLOAD** • **INSTANT PROCESSING**
 
 > ✨ **All processing happens in YOUR browser** - Your files never leave your device! 🔐
 
@@ -35,7 +35,7 @@
 
 ---
 
-## 🛠️ **TOOL CATEGORIES** (8 POWERFUL SUITES)
+## 🛠️ **TOOL CATEGORIES** (13 POWERFUL SUITES)
 
 ### 🔄 **FILE CONVERTER** (12 Tools)
 | Tool | Description | Status |
@@ -100,6 +100,56 @@
 | 🎨 CSS Minifier | Minify CSS code | ✅ **Active** |
 | 🔍 Regex Tester | Test regular expressions | ✅ **Active** |
 | 🎯 URL Parser | Parse and analyze URLs | ✅ **Active** |
+
+### 📱 **APK BUILDER** (6 Tools)
+| Tool | Description | Status |
+|:---:|:---:|:---:|
+| 📄 AndroidManifest Generator | Generate `AndroidManifest.xml` from a form | ✅ **Active** |
+| 🎨 Launcher Icon Set | Source image → mdpi/hdpi/xhdpi/xxhdpi/xxxhdpi ZIP | ✅ **Active** |
+| 🔤 strings.xml Generator | Key/value rows → `res/values/strings.xml` | ✅ **Active** |
+| 🌈 colors.xml Generator | Palette builder with Material preset | ✅ **Active** |
+| 🔐 Permission Picker | Pick Android permissions → manifest snippet | ✅ **Active** |
+| ⚙️ build.gradle Snippet | App-module Gradle config generator | ✅ **Active** |
+
+### 🌐 **MULTI LANGUAGE** (6 Tools)
+| Tool | Description | Status |
+|:---:|:---:|:---:|
+| 📝 i18n JSON Editor | Multi-language side-by-side editor + ZIP export | ✅ **Active** |
+| 🧬 i18n Merger | Merge multiple JSON i18n files with conflict modes | ✅ **Active** |
+| 🔎 Missing Keys Finder | Compare 2 i18n files (missing/empty/unchanged) | ✅ **Active** |
+| 🔄 CSV ↔ JSON | Bidirectional spreadsheet/JSON conversion | ✅ **Active** |
+| 📤 Key Extractor | Extract `t('...')` keys from source code | ✅ **Active** |
+| 🗺️ Locale Code Reference | BCP-47 codes with search + click-to-copy | ✅ **Active** |
+
+### ⚡ **PWA SUPPORT** (6 Tools)
+| Tool | Description | Status |
+|:---:|:---:|:---:|
+| 📄 manifest.json Generator | Web app manifest with shortcuts | ✅ **Active** |
+| 🎨 PWA Icon Set | Source → 72…512 PNG + maskable, ZIP + snippet | ✅ **Active** |
+| ⚙️ Service Worker Generator | cache-first / network-first / SWR strategies | ✅ **Active** |
+| 🏷️ Meta Tags Generator | Apple, Microsoft, OpenGraph, Twitter tags | ✅ **Active** |
+| ✅ Manifest Validator | Validate required + recommended fields | ✅ **Active** |
+| 📥 Install Prompt Generator | Custom install button JS snippet | ✅ **Active** |
+
+### 🎵 **AUDIO TOOLS** (6 Tools)
+| Tool | Description | Status |
+|:---:|:---:|:---:|
+| 🔬 Audio Inspector | Sample rate, channels, duration, bitrate | ✅ **Active** |
+| ✂️ Trim / Cut | Crop audio range, output WAV | ✅ **Active** |
+| 🔊 Volume / Gain | Adjust gain or normalize peak | ✅ **Active** |
+| ↩️ Reverse | Reverse audio buffer | ✅ **Active** |
+| 🎚️ Tone Generator | Sine/square/saw/triangle WAV generator | ✅ **Active** |
+| ⏩ Speed Adjuster | Resample (pitch change) or time-stretch | ✅ **Active** |
+
+### 🎬 **VIDEO TOOLS** (6 Tools)
+| Tool | Description | Status |
+|:---:|:---:|:---:|
+| 🔬 Video Inspector | Duration, resolution, aspect, bitrate | ✅ **Active** |
+| 📸 Thumbnail Extractor | Snapshot at timestamp → PNG/JPG/WEBP | ✅ **Active** |
+| 🎞️ Frame Extractor | Extract frames at interval → ZIP | ✅ **Active** |
+| 🌀 Video → GIF | Convert segment to animated GIF | ✅ **Active** |
+| ✂️ Trim | Re-encode segment to WebM via MediaRecorder | ✅ **Active** |
+| 🔊 Extract Audio | Strip audio track to WebM/Opus | ✅ **Active** |
 
 ---
 

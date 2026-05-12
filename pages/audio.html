@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Audio Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <style>
+    .audio-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 14px 0; }
+    .audio-meta .meta-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+    .audio-meta .meta-label { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    .audio-meta .meta-value { color: var(--text-main); font-weight: 700; font-size: 1rem; margin-top: 4px; font-family: var(--font-mono); word-break: break-word; }
+    .player-wrap audio { width: 100%; margin-top: 12px; }
+    input[type=range] { width: 100%; }
+    .range-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .pill-info { display: inline-block; padding: 4px 10px; border-radius: 99px; background: var(--bg-card); color: var(--text-main); font-family: var(--font-mono); font-size: 0.8rem; border: 1px solid var(--border-color); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🎵 <span class="highlight">Audio Tools</span></h1>
+    <p>Inspeksi file audio dan utilitas pemrosesan via Web Audio API: info, trim, volume, reverse, tone generator, dan speed adjuster. Output WAV agar bebas codec proprietary.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="info"><span class="nav-emoji">🔬</span> Audio Info</button>
+        <button data-tool="trim"><span class="nav-emoji">✂️</span> Trim / Cut</button>
+        <button data-tool="volume"><span class="nav-emoji">🔊</span> Volume Adjust</button>
+        <button data-tool="reverse"><span class="nav-emoji">↩️</span> Reverse</button>
+        <button data-tool="tone"><span class="nav-emoji">🎚️</span> Tone Generator</button>
+        <button data-tool="speed"><span class="nav-emoji">⏩</span> Speed Adjust</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+
+      <!-- INFO -->
+      <div class="tool-panel" id="panel-info">
+        <h2>🔬 Audio Inspector</h2>
+        <p class="panel-desc">Lihat metadata audio: durasi, sample rate, channel, dan estimasi bitrate.</p>
+        <div class="dropzone" id="dz-info">
+          <input type="file" id="file-info" accept="audio/*" />
+          <div class="drop-icon">🎵</div>
+          <h3>Pilih file audio</h3>
+          <p>MP3, WAV, OGG, M4A, FLAC, WebM</p>
+        </div>
+        <div class="player-wrap"><audio id="aud-info" controls style="display:none"></audio></div>
+        <div class="audio-meta" id="meta-info"></div>
+        <div class="status-alert" id="st-info"></div>
+      </div>
+
+      <!-- TRIM -->
+      <div class="tool-panel" id="panel-trim">
+        <h2>✂️ Trim / Cut Audio</h2>
+        <p class="panel-desc">Pilih rentang waktu untuk dipotong, hasil diunduh sebagai WAV.</p>
+        <div class="dropzone" id="dz-trim">
+          <input type="file" id="file-trim" accept="audio/*" />
+          <div class="drop-icon">🎵</div>
+          <h3>Pilih file audio</h3>
+          <p>Max ~100MB</p>
+        </div>
+        <div class="player-wrap"><audio id="aud-trim" controls style="display:none"></audio></div>
+        <div class="audio-meta" id="meta-trim"></div>
+        <div class="range-row">
+          <div class="field"><label>Mulai (detik)</label><input type="number" class="form-control" id="tr-start" value="0" step="0.1" min="0"></div>
+          <div class="field"><label>Selesai (detik)</label><input type="number" class="form-control" id="tr-end" value="5" step="0.1" min="0"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-trim" disabled>Trim & Unduh WAV</button>
+        <div class="status-alert" id="st-trim"></div>
+      </div>
+
+      <!-- VOLUME -->
+      <div class="tool-panel" id="panel-volume">
+        <h2>🔊 Volume / Gain Adjust</h2>
+        <p class="panel-desc">Naikkan atau turunkan volume audio. 1.0 = volume asli, 2.0 = +6 dB, 0.5 = −6 dB.</p>
+        <div class="dropzone" id="dz-vol">
+          <input type="file" id="file-vol" accept="audio/*" />
+          <div class="drop-icon">🎵</div>
+          <h3>Pilih file audio</h3>
+          <p>Max ~100MB</p>
+        </div>
+        <div class="player-wrap"><audio id="aud-vol" controls style="display:none"></audio></div>
+        <div class="field">
+          <label>Gain (<span id="vol-val">1.00</span>×)</label>
+          <input type="range" id="vol-range" min="0" max="4" step="0.05" value="1">
+        </div>
+        <label class="checkbox-row"><input type="checkbox" id="vol-norm" /><span>Normalisasi (peak → 0 dB)</span></label>
+        <button class="btn btn-primary btn-block mt-3" id="btn-vol" disabled>Apply & Unduh WAV</button>
+        <div class="status-alert" id="st-vol"></div>
+      </div>
+
+      <!-- REVERSE -->
+      <div class="tool-panel" id="panel-reverse">
+        <h2>↩️ Reverse Audio</h2>
+        <p class="panel-desc">Balik audio dari belakang ke depan. Output WAV.</p>
+        <div class="dropzone" id="dz-rev">
+          <input type="file" id="file-rev" accept="audio/*" />
+          <div class="drop-icon">🎵</div>
+          <h3>Pilih file audio</h3>
+          <p>Max ~100MB</p>
+        </div>
+        <div class="player-wrap"><audio id="aud-rev" controls style="display:none"></audio></div>
+        <button class="btn btn-primary btn-block" id="btn-rev" disabled>Reverse & Unduh WAV</button>
+        <div class="status-alert" id="st-rev"></div>
+      </div>
+
+      <!-- TONE -->
+      <div class="tool-panel" id="panel-tone">
+        <h2>🎚️ Tone Generator</h2>
+        <p class="panel-desc">Hasilkan tone sintetis dengan gelombang sine/square/sawtooth/triangle. Berguna untuk testing speaker, pitch reference, atau efek sound.</p>
+        <div class="field-row-3">
+          <div class="field"><label>Frequency (Hz)</label><input type="number" class="form-control" id="to-freq" value="440" min="20" max="20000"></div>
+          <div class="field"><label>Durasi (detik)</label><input type="number" class="form-control" id="to-dur" value="2" min="0.1" step="0.1"></div>
+          <div class="field">
+            <label>Wave</label>
+            <select class="form-control" id="to-wave">
+              <option value="sine">Sine</option>
+              <option value="square">Square</option>
+              <option value="sawtooth">Sawtooth</option>
+              <option value="triangle">Triangle</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Volume (<span id="to-vol-val">0.50</span>)</label><input type="range" id="to-vol" min="0" max="1" step="0.01" value="0.5"></div>
+          <div class="field"><label>Fade in/out (detik)</label><input type="number" class="form-control" id="to-fade" value="0.05" step="0.01" min="0"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="btn-to-prev">▶️ Preview</button>
+          <button class="btn" id="btn-to-dl">⬇️ Unduh WAV</button>
+        </div>
+        <div class="player-wrap"><audio id="aud-to" controls style="display:none"></audio></div>
+        <div class="status-alert" id="st-to"></div>
+      </div>
+
+      <!-- SPEED -->
+      <div class="tool-panel" id="panel-speed">
+        <h2>⏩ Speed / Pitch Adjuster</h2>
+        <p class="panel-desc">Ubah kecepatan playback audio. Mode "Resample" akan mengubah pitch (chipmunk effect); mode "Time Stretch (estimasi)" mempertahankan pitch via stride.</p>
+        <div class="dropzone" id="dz-sp">
+          <input type="file" id="file-sp" accept="audio/*" />
+          <div class="drop-icon">🎵</div>
+          <h3>Pilih file audio</h3>
+          <p>Max ~100MB</p>
+        </div>
+        <div class="player-wrap"><audio id="aud-sp" controls style="display:none"></audio></div>
+        <div class="field-row">
+          <div class="field"><label>Faktor kecepatan (<span id="sp-val">1.00</span>×)</label><input type="range" id="sp-range" min="0.25" max="3" step="0.05" value="1"></div>
+          <div class="field"><label>Mode</label>
+            <select class="form-control" id="sp-mode">
+              <option value="resample">Resample (pitch berubah)</option>
+              <option value="stretch">Time-stretch (estimasi, pitch tetap)</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block mt-3" id="btn-sp" disabled>Apply & Unduh WAV</button>
+        <div class="status-alert" id="st-sp"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🎵 Audio Tools' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'info');
+
+// ─── WAV ENCODER ───────────────────────────────────────────
+function audioBufferToWav(buffer) {
+  const numCh = buffer.numberOfChannels;
+  const sr = buffer.sampleRate;
+  const numFrames = buffer.length;
+  const bytesPerSample = 2;
+  const blockAlign = numCh * bytesPerSample;
+  const byteRate = sr * blockAlign;
+  const dataSize = numFrames * blockAlign;
+  const buf = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buf);
+  const w = (off, s) => { for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); view.setUint32(4, 36 + dataSize, true); w(8, 'WAVE');
+  w(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+  view.setUint16(22, numCh, true); view.setUint32(24, sr, true);
+  view.setUint32(28, byteRate, true); view.setUint16(32, blockAlign, true);
+  view.setUint16(34, 16, true); w(36, 'data'); view.setUint32(40, dataSize, true);
+  const chans = []; for (let c = 0; c < numCh; c++) chans.push(buffer.getChannelData(c));
+  let off = 44;
+  for (let i = 0; i < numFrames; i++) {
+    for (let c = 0; c < numCh; c++) {
+      let s = Math.max(-1, Math.min(1, chans[c][i]));
+      view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      off += 2;
+    }
+  }
+  return new Blob([buf], { type: 'audio/wav' });
+}
+let _ctx;
+function ctx() { return _ctx || (_ctx = new (window.AudioContext || window.webkitAudioContext)()); }
+function loadAudioBuffer(file) {
+  return file.arrayBuffer().then(ab => ctx().decodeAudioData(ab));
+}
+function fmtTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${String(sec).padStart(2, '0')}`; }
+function pillMeta(label, val) { return `<div class="meta-item"><div class="meta-label">${label}</div><div class="meta-value">${val}</div></div>`; }
+
+// ─── INFO ──────────────────────────────────────────────────
+setupDropzone('dz-info', 'file-info', async files => {
+  const f = files[0];
+  document.getElementById('aud-info').src = URL.createObjectURL(f);
+  document.getElementById('aud-info').style.display = '';
+  try {
+    const buf = await loadAudioBuffer(f);
+    const bitrate = Math.round((f.size * 8) / buf.duration / 1000);
+    document.getElementById('meta-info').innerHTML = [
+      pillMeta('Nama', f.name),
+      pillMeta('Tipe', f.type || '—'),
+      pillMeta('Ukuran', formatBytes(f.size)),
+      pillMeta('Durasi', fmtTime(buf.duration) + ` (${buf.duration.toFixed(2)}s)`),
+      pillMeta('Sample Rate', buf.sampleRate + ' Hz'),
+      pillMeta('Channels', buf.numberOfChannels),
+      pillMeta('Bitrate (est.)', bitrate + ' kbps'),
+      pillMeta('Total Frame', buf.length.toLocaleString())
+    ].join('');
+    showStatus('st-info', 'success', 'Audio berhasil dianalisis.');
+  } catch (err) {
+    showStatus('st-info', 'error', 'Gagal decode audio: ' + err.message);
+  }
+});
+
+// ─── TRIM ──────────────────────────────────────────────────
+let trimBuf = null;
+setupDropzone('dz-trim', 'file-trim', async files => {
+  const f = files[0];
+  document.getElementById('aud-trim').src = URL.createObjectURL(f);
+  document.getElementById('aud-trim').style.display = '';
+  try {
+    trimBuf = await loadAudioBuffer(f);
+    document.getElementById('meta-trim').innerHTML = [
+      pillMeta('Durasi', fmtTime(trimBuf.duration)),
+      pillMeta('Sample Rate', trimBuf.sampleRate + ' Hz'),
+      pillMeta('Channels', trimBuf.numberOfChannels)
+    ].join('');
+    document.getElementById('tr-end').value = Math.min(5, trimBuf.duration).toFixed(2);
+    document.getElementById('btn-trim').disabled = false;
+    showStatus('st-trim', 'success', 'Siap di-trim.');
+  } catch (err) { showStatus('st-trim', 'error', 'Gagal decode: ' + err.message); }
+});
+document.getElementById('btn-trim').addEventListener('click', () => {
+  if (!trimBuf) return;
+  const start = Math.max(0, parseFloat(document.getElementById('tr-start').value) || 0);
+  const end = Math.min(trimBuf.duration, parseFloat(document.getElementById('tr-end').value) || trimBuf.duration);
+  if (end <= start) return showStatus('st-trim', 'error', 'Waktu akhir harus > awal.');
+  const sr = trimBuf.sampleRate;
+  const startF = Math.floor(start * sr);
+  const len = Math.floor((end - start) * sr);
+  const nb = ctx().createBuffer(trimBuf.numberOfChannels, len, sr);
+  for (let c = 0; c < trimBuf.numberOfChannels; c++) {
+    nb.getChannelData(c).set(trimBuf.getChannelData(c).subarray(startF, startF + len));
+  }
+  downloadBlob(audioBufferToWav(nb), `trim_${start.toFixed(1)}-${end.toFixed(1)}s.wav`);
+  showStatus('st-trim', 'success', 'Trim selesai & diunduh.');
+});
+
+// ─── VOLUME ────────────────────────────────────────────────
+let volBuf = null;
+setupDropzone('dz-vol', 'file-vol', async files => {
+  const f = files[0];
+  document.getElementById('aud-vol').src = URL.createObjectURL(f);
+  document.getElementById('aud-vol').style.display = '';
+  try {
+    volBuf = await loadAudioBuffer(f);
+    document.getElementById('btn-vol').disabled = false;
+    showStatus('st-vol', 'success', 'Siap di-adjust.');
+  } catch (err) { showStatus('st-vol', 'error', 'Gagal decode: ' + err.message); }
+});
+document.getElementById('vol-range').addEventListener('input', e => document.getElementById('vol-val').textContent = parseFloat(e.target.value).toFixed(2));
+document.getElementById('btn-vol').addEventListener('click', () => {
+  if (!volBuf) return;
+  let gain = parseFloat(document.getElementById('vol-range').value);
+  const norm = document.getElementById('vol-norm').checked;
+  const nb = ctx().createBuffer(volBuf.numberOfChannels, volBuf.length, volBuf.sampleRate);
+  if (norm) {
+    let peak = 0;
+    for (let c = 0; c < volBuf.numberOfChannels; c++) for (const v of volBuf.getChannelData(c)) if (Math.abs(v) > peak) peak = Math.abs(v);
+    if (peak > 0) gain = (1 / peak) * gain;
+  }
+  for (let c = 0; c < volBuf.numberOfChannels; c++) {
+    const src = volBuf.getChannelData(c); const dst = nb.getChannelData(c);
+    for (let i = 0; i < src.length; i++) dst[i] = Math.max(-1, Math.min(1, src[i] * gain));
+  }
+  downloadBlob(audioBufferToWav(nb), `volume_${gain.toFixed(2)}x.wav`);
+  showStatus('st-vol', 'success', 'Volume diterapkan & diunduh.');
+});
+
+// ─── REVERSE ───────────────────────────────────────────────
+let revBuf = null;
+setupDropzone('dz-rev', 'file-rev', async files => {
+  const f = files[0];
+  document.getElementById('aud-rev').src = URL.createObjectURL(f);
+  document.getElementById('aud-rev').style.display = '';
+  try {
+    revBuf = await loadAudioBuffer(f);
+    document.getElementById('btn-rev').disabled = false;
+    showStatus('st-rev', 'success', 'Siap di-reverse.');
+  } catch (err) { showStatus('st-rev', 'error', 'Gagal decode: ' + err.message); }
+});
+document.getElementById('btn-rev').addEventListener('click', () => {
+  if (!revBuf) return;
+  const nb = ctx().createBuffer(revBuf.numberOfChannels, revBuf.length, revBuf.sampleRate);
+  for (let c = 0; c < revBuf.numberOfChannels; c++) {
+    const src = revBuf.getChannelData(c); const dst = nb.getChannelData(c);
+    for (let i = 0; i < src.length; i++) dst[i] = src[src.length - 1 - i];
+  }
+  downloadBlob(audioBufferToWav(nb), 'reversed.wav');
+  showStatus('st-rev', 'success', 'Audio dibalik & diunduh.');
+});
+
+// ─── TONE ──────────────────────────────────────────────────
+document.getElementById('to-vol').addEventListener('input', e => document.getElementById('to-vol-val').textContent = parseFloat(e.target.value).toFixed(2));
+function genTone() {
+  const freq = parseFloat(document.getElementById('to-freq').value) || 440;
+  const dur = parseFloat(document.getElementById('to-dur').value) || 1;
+  const type = document.getElementById('to-wave').value;
+  const vol = parseFloat(document.getElementById('to-vol').value);
+  const fade = parseFloat(document.getElementById('to-fade').value) || 0;
+  const sr = 44100;
+  const N = Math.floor(dur * sr);
+  const buf = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    const t = i / sr;
+    const p = 2 * Math.PI * freq * t;
+    let v;
+    switch (type) {
+      case 'square': v = Math.sin(p) >= 0 ? 1 : -1; break;
+      case 'sawtooth': v = 2 * (t * freq - Math.floor(0.5 + t * freq)); break;
+      case 'triangle': v = 2 * Math.abs(2 * (t * freq - Math.floor(0.5 + t * freq))) - 1; break;
+      default: v = Math.sin(p);
+    }
+    let amp = vol;
+    if (fade > 0) {
+      const fadeN = Math.floor(fade * sr);
+      if (i < fadeN) amp *= i / fadeN;
+      else if (i > N - fadeN) amp *= (N - i) / fadeN;
+    }
+    buf[i] = v * amp;
+  }
+  const ab = ctx().createBuffer(1, N, sr);
+  ab.getChannelData(0).set(buf);
+  return ab;
+}
+document.getElementById('btn-to-prev').addEventListener('click', () => {
+  const ab = genTone();
+  const blob = audioBufferToWav(ab);
+  const url = URL.createObjectURL(blob);
+  const a = document.getElementById('aud-to');
+  a.src = url; a.style.display = ''; a.play();
+  showStatus('st-to', 'success', 'Tone dihasilkan — preview di player.');
+});
+document.getElementById('btn-to-dl').addEventListener('click', () => {
+  const ab = genTone();
+  downloadBlob(audioBufferToWav(ab), `tone_${document.getElementById('to-freq').value}hz.wav`);
+});
+
+// ─── SPEED ─────────────────────────────────────────────────
+let spBuf = null;
+setupDropzone('dz-sp', 'file-sp', async files => {
+  const f = files[0];
+  document.getElementById('aud-sp').src = URL.createObjectURL(f);
+  document.getElementById('aud-sp').style.display = '';
+  try {
+    spBuf = await loadAudioBuffer(f);
+    document.getElementById('btn-sp').disabled = false;
+    showStatus('st-sp', 'success', 'Siap di-adjust.');
+  } catch (err) { showStatus('st-sp', 'error', 'Gagal decode: ' + err.message); }
+});
+document.getElementById('sp-range').addEventListener('input', e => document.getElementById('sp-val').textContent = parseFloat(e.target.value).toFixed(2));
+document.getElementById('btn-sp').addEventListener('click', () => {
+  if (!spBuf) return;
+  const factor = parseFloat(document.getElementById('sp-range').value);
+  const mode = document.getElementById('sp-mode').value;
+  const newLen = Math.floor(spBuf.length / factor);
+  const nb = ctx().createBuffer(spBuf.numberOfChannels, newLen, spBuf.sampleRate);
+  for (let c = 0; c < spBuf.numberOfChannels; c++) {
+    const src = spBuf.getChannelData(c); const dst = nb.getChannelData(c);
+    if (mode === 'resample') {
+      // simple linear resample → changes pitch
+      for (let i = 0; i < newLen; i++) {
+        const x = i * factor;
+        const x0 = Math.floor(x); const x1 = Math.min(src.length - 1, x0 + 1);
+        const f = x - x0;
+        dst[i] = src[x0] * (1 - f) + src[x1] * f;
+      }
+    } else {
+      // overlap-add granular stretch (approximation, preserves pitch loosely)
+      const grain = Math.floor(spBuf.sampleRate * 0.04); // 40ms
+      const step = Math.floor(grain * factor);
+      let outPos = 0;
+      for (let inPos = 0; inPos + grain < src.length && outPos + grain < dst.length; inPos += step) {
+        for (let g = 0; g < grain; g++) {
+          const win = 0.5 - 0.5 * Math.cos(2 * Math.PI * g / (grain - 1));
+          dst[outPos + g] += src[inPos + g] * win;
+        }
+        outPos += Math.floor(grain * 0.5);
+      }
+    }
+  }
+  downloadBlob(audioBufferToWav(nb), `speed_${factor}x_${mode}.wav`);
+  showStatus('st-sp', 'success', 'Speed diterapkan & diunduh.');
+});
+</script>
+
+</body>
+</html>

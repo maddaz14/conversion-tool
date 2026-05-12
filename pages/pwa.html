@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PWA Support Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    pre.code-out { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 0.82rem; white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow: auto; color: var(--text-main); }
+    .pwa-icon-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 14px; }
+    .pwa-icon-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; text-align: center; }
+    .pwa-icon-card img { display: block; margin: 0 auto 8px; }
+    .pwa-icon-card span { font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); }
+    .shortcut-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
+    .validator-list { list-style: none; padding: 0; margin: 10px 0; }
+    .validator-list li { padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.86rem; }
+    .v-ok { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+    .v-warn { background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+    .v-err { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>⚡ <span class="highlight">PWA Support Tools</span></h1>
+    <p>Set lengkap untuk Progressive Web App: manifest.json, icon set, service worker, meta tags lintas-platform, validator manifest, dan install prompt script.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="manifest"><span class="nav-emoji">📄</span> manifest.json</button>
+        <button data-tool="icons"><span class="nav-emoji">🎨</span> Icon Set</button>
+        <button data-tool="sw"><span class="nav-emoji">⚙️</span> Service Worker</button>
+        <button data-tool="meta"><span class="nav-emoji">🏷️</span> Meta Tags</button>
+        <button data-tool="validator"><span class="nav-emoji">✅</span> Validator</button>
+        <button data-tool="install"><span class="nav-emoji">📥</span> Install Prompt</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+
+      <!-- MANIFEST -->
+      <div class="tool-panel" id="panel-manifest">
+        <h2>📄 manifest.json Generator</h2>
+        <p class="panel-desc">Buat web app manifest siap pakai dengan setting display, theme color, dan shortcut.</p>
+
+        <div class="field-row">
+          <div class="field"><label>Name</label><input type="text" class="form-control" id="pw-name" value="My PWA App"></div>
+          <div class="field"><label>Short Name</label><input type="text" class="form-control" id="pw-short" value="MyPWA"></div>
+        </div>
+        <div class="field"><label>Description</label><input type="text" class="form-control" id="pw-desc" value="Aplikasi web modern dengan dukungan offline."></div>
+        <div class="field-row">
+          <div class="field"><label>Start URL</label><input type="text" class="form-control" id="pw-start" value="/"></div>
+          <div class="field"><label>Scope</label><input type="text" class="form-control" id="pw-scope" value="/"></div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label>Display</label>
+            <select class="form-control" id="pw-display">
+              <option value="standalone">standalone</option>
+              <option value="fullscreen">fullscreen</option>
+              <option value="minimal-ui">minimal-ui</option>
+              <option value="browser">browser</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Orientation</label>
+            <select class="form-control" id="pw-orient">
+              <option value="any">any</option>
+              <option value="portrait">portrait</option>
+              <option value="landscape">landscape</option>
+              <option value="portrait-primary">portrait-primary</option>
+              <option value="landscape-primary">landscape-primary</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Lang</label>
+            <input type="text" class="form-control" id="pw-lang" value="id">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Theme Color</label><input type="color" class="form-control" id="pw-theme" value="#3b82f6"></div>
+          <div class="field"><label>Background Color</label><input type="color" class="form-control" id="pw-bg" value="#0f172a"></div>
+        </div>
+
+        <h4 class="mt-3" style="margin:14px 0 8px;font-size:0.95rem">Shortcuts (opsional)</h4>
+        <div id="pw-shortcuts"></div>
+        <button class="btn btn-sm" id="btn-pw-sc-add">➕ Tambah Shortcut</button>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-pw-gen">Generate manifest.json</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="pw-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="pw-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="pw-dl">⬇️ Unduh manifest.json</button>
+        </div>
+        <div class="status-alert" id="st-pw"></div>
+      </div>
+
+      <!-- ICONS -->
+      <div class="tool-panel" id="panel-icons">
+        <h2>🎨 PWA Icon Set Generator</h2>
+        <p class="panel-desc">Upload gambar source (min 512×512), sistem generate icon untuk ukuran: 72, 96, 128, 144, 152, 192, 256, 384, 512 + maskable 192/512. Hasil dibungkus ZIP plus snippet array <code>icons</code> siap tempel ke manifest.</p>
+
+        <div class="dropzone" id="dz-pwa-icon">
+          <input type="file" id="file-pwa-icon" accept="image/*" />
+          <div class="drop-icon">🖼️</div>
+          <h3>Pilih gambar source</h3>
+          <p>Persegi, min 512×512</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Nama dasar</label><input type="text" class="form-control" id="pi-name" value="icon"></div>
+          <div class="field"><label>Folder dalam ZIP</label><input type="text" class="form-control" id="pi-folder" value="icons"></div>
+        </div>
+        <label class="checkbox-row"><input type="checkbox" id="pi-maskable" checked /><span>Sertakan maskable icons (purpose: "maskable")</span></label>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-pi-gen" disabled>Generate & Unduh ZIP</button>
+
+        <div class="pwa-icon-preview" id="pi-preview"></div>
+
+        <div class="field mt-3" id="pi-snippet-wrap" style="display:none">
+          <label>Snippet manifest "icons"</label>
+          <pre class="code-out" id="pi-snippet"></pre>
+          <div class="btn-row"><button class="btn btn-sm" id="pi-copy">📋 Salin snippet</button></div>
+        </div>
+        <div class="status-alert" id="st-pi"></div>
+      </div>
+
+      <!-- SERVICE WORKER -->
+      <div class="tool-panel" id="panel-sw">
+        <h2>⚙️ Service Worker Generator</h2>
+        <p class="panel-desc">Hasilkan <code>sw.js</code> untuk caching strategi cache-first / network-first / stale-while-revalidate dengan precache list otomatis.</p>
+
+        <div class="field-row">
+          <div class="field"><label>Cache Name</label><input type="text" class="form-control" id="sw-cache" value="my-pwa-v1"></div>
+          <div class="field"><label>Strategy</label>
+            <select class="form-control" id="sw-strategy">
+              <option value="cache-first">Cache First</option>
+              <option value="network-first">Network First</option>
+              <option value="swr">Stale-While-Revalidate</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Precache URLs (satu per baris)</label>
+          <textarea class="form-control" id="sw-precache" rows="6">/
+/index.html
+/styles.css
+/app.js
+/manifest.json</textarea>
+        </div>
+        <div class="field-row-3">
+          <label class="checkbox-row"><input type="checkbox" id="sw-offline" checked /><span>Offline fallback ke /offline.html</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="sw-skipwait" checked /><span>skipWaiting + clients.claim</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="sw-cleanup" checked /><span>Cleanup cache lama saat activate</span></label>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-sw-gen">Generate sw.js</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="sw-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="sw-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="sw-dl">⬇️ Unduh sw.js</button>
+          <button class="btn btn-sm" id="sw-reg-copy">📋 Salin Register Script</button>
+        </div>
+        <div class="status-alert" id="st-sw"></div>
+      </div>
+
+      <!-- META TAGS -->
+      <div class="tool-panel" id="panel-meta">
+        <h2>🏷️ PWA Meta Tags Generator</h2>
+        <p class="panel-desc">Tag <code>&lt;meta&gt;</code> & <code>&lt;link&gt;</code> lengkap: theme color, Apple iOS, Windows tile, Open Graph, dan link manifest.</p>
+
+        <div class="field-row">
+          <div class="field"><label>Site Title</label><input type="text" class="form-control" id="mt-title" value="My PWA App"></div>
+          <div class="field"><label>Description</label><input type="text" class="form-control" id="mt-desc" value="Aplikasi web modern."></div>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label>Theme Color</label><input type="color" class="form-control" id="mt-theme" value="#3b82f6"></div>
+          <div class="field"><label>Apple Status Bar</label>
+            <select class="form-control" id="mt-applestat">
+              <option>default</option>
+              <option>black</option>
+              <option selected>black-translucent</option>
+            </select>
+          </div>
+          <div class="field"><label>URL</label><input type="text" class="form-control" id="mt-url" value="https://example.com"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Manifest Path</label><input type="text" class="form-control" id="mt-manifest" value="/manifest.json"></div>
+          <div class="field"><label>OG Image</label><input type="text" class="form-control" id="mt-og" value="/og.png"></div>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-mt-gen">Generate</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="mt-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="mt-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-mt"></div>
+      </div>
+
+      <!-- VALIDATOR -->
+      <div class="tool-panel" id="panel-validator">
+        <h2>✅ PWA Manifest Validator</h2>
+        <p class="panel-desc">Tempel manifest.json untuk dicek field wajib & opsional, beserta saran perbaikan.</p>
+
+        <div class="field">
+          <label>manifest.json</label>
+          <textarea class="form-control" id="vl-input" rows="14" placeholder='{"name":"...","short_name":"...","icons":[...]}'></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-vl-run">Validasi</button>
+
+        <ul class="validator-list" id="vl-list"></ul>
+        <div class="status-alert" id="st-vl"></div>
+      </div>
+
+      <!-- INSTALL PROMPT -->
+      <div class="tool-panel" id="panel-install">
+        <h2>📥 Install Prompt Generator</h2>
+        <p class="panel-desc">Hasilkan snippet JS untuk menampilkan custom install button (BeforeInstallPromptEvent). Pilih ID tombol & teks.</p>
+
+        <div class="field-row">
+          <div class="field"><label>Button ID</label><input type="text" class="form-control" id="ip-id" value="installBtn"></div>
+          <div class="field"><label>Auto-hide jika sudah terinstall</label>
+            <select class="form-control" id="ip-hide">
+              <option value="yes">Ya</option>
+              <option value="no">Tidak</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Pesan log saat installed</label><input type="text" class="form-control" id="ip-msg" value="PWA berhasil dipasang."></div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-ip-gen">Generate Snippet</button>
+
+        <div class="field mt-3">
+          <label>Output JS</label>
+          <pre class="code-out" id="ip-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="ip-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="ip-dl">⬇️ Unduh install.js</button>
+        </div>
+        <div class="status-alert" id="st-ip"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '⚡ PWA Support' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'manifest');
+
+// ─── MANIFEST ──────────────────────────────────────────────
+function addShortcutRow(name = '', url = '', desc = '') {
+  const row = document.createElement('div');
+  row.className = 'shortcut-row';
+  row.innerHTML = `
+    <input type="text" class="form-control sc-name" placeholder="Name" value="${name.replace(/"/g, '&quot;')}">
+    <input type="text" class="form-control sc-url" placeholder="/path" value="${url.replace(/"/g, '&quot;')}">
+    <input type="text" class="form-control sc-desc" placeholder="Description" value="${desc.replace(/"/g, '&quot;')}">
+    <button class="btn btn-sm btn-danger row-del">✕</button>`;
+  row.querySelector('.row-del').addEventListener('click', () => row.remove());
+  document.getElementById('pw-shortcuts').appendChild(row);
+}
+document.getElementById('btn-pw-sc-add').addEventListener('click', () => addShortcutRow());
+
+function buildManifest() {
+  const m = {
+    name: document.getElementById('pw-name').value.trim() || 'My App',
+    short_name: document.getElementById('pw-short').value.trim() || 'App',
+    description: document.getElementById('pw-desc').value.trim(),
+    start_url: document.getElementById('pw-start').value.trim() || '/',
+    scope: document.getElementById('pw-scope').value.trim() || '/',
+    display: document.getElementById('pw-display').value,
+    orientation: document.getElementById('pw-orient').value,
+    lang: document.getElementById('pw-lang').value.trim() || 'en',
+    theme_color: document.getElementById('pw-theme').value,
+    background_color: document.getElementById('pw-bg').value,
+    icons: [
+      { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+    ]
+  };
+  const sc = [...document.querySelectorAll('#pw-shortcuts .shortcut-row')].map(r => ({
+    name: r.querySelector('.sc-name').value.trim(),
+    url: r.querySelector('.sc-url').value.trim(),
+    description: r.querySelector('.sc-desc').value.trim()
+  })).filter(s => s.name && s.url);
+  if (sc.length) m.shortcuts = sc;
+  return JSON.stringify(m, null, 2);
+}
+document.getElementById('btn-pw-gen').addEventListener('click', () => {
+  document.getElementById('pw-out').textContent = buildManifest();
+  showStatus('st-pw', 'success', 'manifest.json berhasil dibuat.');
+});
+document.getElementById('pw-copy').addEventListener('click', () => copyToClipboard(document.getElementById('pw-out').textContent, 'st-pw'));
+document.getElementById('pw-dl').addEventListener('click', () => downloadText(document.getElementById('pw-out').textContent || buildManifest(), 'manifest.json', 'application/json'));
+
+// ─── ICONS ─────────────────────────────────────────────────
+const PWA_SIZES = [72, 96, 128, 144, 152, 192, 256, 384, 512];
+let pwaIconSrc = null;
+setupDropzone('dz-pwa-icon', 'file-pwa-icon', files => {
+  const f = files[0];
+  if (!f || !f.type.startsWith('image/')) return showStatus('st-pi', 'error', 'File harus gambar.');
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => { pwaIconSrc = img; document.getElementById('btn-pi-gen').disabled = false; showStatus('st-pi', 'success', `Source loaded: ${img.naturalWidth}×${img.naturalHeight}.`); };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(f);
+});
+function renderPwa(size, maskable = false) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  if (maskable) {
+    // safe zone padding 10%
+    ctx.fillStyle = document.getElementById('pw-bg') ? document.getElementById('pw-bg').value : '#0f172a';
+    ctx.fillRect(0, 0, size, size);
+    const pad = size * 0.1;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(pwaIconSrc, pad, pad, size - pad * 2, size - pad * 2);
+  } else {
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(pwaIconSrc, 0, 0, size, size);
+  }
+  return new Promise(res => c.toBlob(b => res({ blob: b, dataUrl: c.toDataURL('image/png') }), 'image/png'));
+}
+document.getElementById('btn-pi-gen').addEventListener('click', async () => {
+  if (!pwaIconSrc) return;
+  const name = (document.getElementById('pi-name').value.trim() || 'icon').replace(/[^a-z0-9_-]/gi, '_');
+  const folder = (document.getElementById('pi-folder').value.trim() || 'icons').replace(/^\/|\/$/g, '');
+  const maskable = document.getElementById('pi-maskable').checked;
+  const zip = new JSZip();
+  const preview = document.getElementById('pi-preview'); preview.innerHTML = '';
+  const iconsArr = [];
+  for (const s of PWA_SIZES) {
+    const { blob, dataUrl } = await renderPwa(s, false);
+    zip.folder(folder).file(`${name}-${s}.png`, blob);
+    iconsArr.push({ src: `${folder}/${name}-${s}.png`, sizes: `${s}x${s}`, type: 'image/png', purpose: 'any' });
+    const card = document.createElement('div'); card.className = 'pwa-icon-card';
+    card.innerHTML = `<img src="${dataUrl}" width="${Math.min(96, s)}" height="${Math.min(96, s)}"><span>${s}×${s}</span>`;
+    preview.appendChild(card);
+  }
+  if (maskable) {
+    for (const s of [192, 512]) {
+      const { blob, dataUrl } = await renderPwa(s, true);
+      zip.folder(folder).file(`${name}-maskable-${s}.png`, blob);
+      iconsArr.push({ src: `${folder}/${name}-maskable-${s}.png`, sizes: `${s}x${s}`, type: 'image/png', purpose: 'maskable' });
+      const card = document.createElement('div'); card.className = 'pwa-icon-card';
+      card.innerHTML = `<img src="${dataUrl}" width="${Math.min(96, s)}" height="${Math.min(96, s)}"><span>maskable ${s}×${s}</span>`;
+      preview.appendChild(card);
+    }
+  }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(blob, `${name}-pwa-icons.zip`);
+  document.getElementById('pi-snippet-wrap').style.display = '';
+  document.getElementById('pi-snippet').textContent = JSON.stringify({ icons: iconsArr }, null, 2);
+  showStatus('st-pi', 'success', `${iconsArr.length} icon dibuat & di-zip.`);
+});
+document.getElementById('pi-copy').addEventListener('click', () => copyToClipboard(document.getElementById('pi-snippet').textContent, 'st-pi'));
+
+// ─── SERVICE WORKER ────────────────────────────────────────
+function buildSW() {
+  const cache = document.getElementById('sw-cache').value.trim() || 'pwa-v1';
+  const strat = document.getElementById('sw-strategy').value;
+  const urls = document.getElementById('sw-precache').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const off = document.getElementById('sw-offline').checked;
+  const skip = document.getElementById('sw-skipwait').checked;
+  const clean = document.getElementById('sw-cleanup').checked;
+
+  const stratBlock = {
+    'cache-first': `event.respondWith(
+      caches.match(event.request).then(c => c || fetch(event.request).then(r => {
+        const copy = r.clone();
+        caches.open(CACHE).then(ch => ch.put(event.request, copy));
+        return r;
+      }))${off ? `.catch(() => caches.match('/offline.html'))` : ''}
+    );`,
+    'network-first': `event.respondWith(
+      fetch(event.request).then(r => {
+        const copy = r.clone();
+        caches.open(CACHE).then(ch => ch.put(event.request, copy));
+        return r;
+      }).catch(() => caches.match(event.request)${off ? `.then(c => c || caches.match('/offline.html'))` : ''})
+    );`,
+    'swr': `event.respondWith(
+      caches.match(event.request).then(cached => {
+        const network = fetch(event.request).then(r => {
+          const copy = r.clone();
+          caches.open(CACHE).then(ch => ch.put(event.request, copy));
+          return r;
+        })${off ? `.catch(() => caches.match('/offline.html'))` : ''};
+        return cached || network;
+      })
+    );`
+  }[strat];
+
+  return `// sw.js — generated by Gondrong STIES PWA Tools
+const CACHE = '${cache}';
+const PRECACHE = ${JSON.stringify(urls, null, 2)};
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE).then(ch => ch.addAll(PRECACHE))${skip ? `.then(() => self.skipWaiting())` : ''}
+  );
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    ${clean ? `caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))` : `Promise.resolve()`}
+    ${skip ? `.then(() => self.clients.claim())` : ''}
+  );
+});
+
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  ${stratBlock}
+});`;
+}
+document.getElementById('btn-sw-gen').addEventListener('click', () => {
+  document.getElementById('sw-out').textContent = buildSW();
+  showStatus('st-sw', 'success', 'sw.js berhasil dibuat.');
+});
+document.getElementById('sw-copy').addEventListener('click', () => copyToClipboard(document.getElementById('sw-out').textContent, 'st-sw'));
+document.getElementById('sw-dl').addEventListener('click', () => downloadText(document.getElementById('sw-out').textContent || buildSW(), 'sw.js', 'text/javascript'));
+document.getElementById('sw-reg-copy').addEventListener('click', () => {
+  const snippet = `if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      console.log('SW registered:', reg.scope);
+    }).catch(err => console.error('SW failed:', err));
+  });
+}`;
+  copyToClipboard(snippet, 'st-sw');
+});
+
+// ─── META TAGS ─────────────────────────────────────────────
+document.getElementById('btn-mt-gen').addEventListener('click', () => {
+  const title = document.getElementById('mt-title').value.trim();
+  const desc = document.getElementById('mt-desc').value.trim();
+  const theme = document.getElementById('mt-theme').value;
+  const apple = document.getElementById('mt-applestat').value;
+  const url = document.getElementById('mt-url').value.trim();
+  const manifest = document.getElementById('mt-manifest').value.trim();
+  const og = document.getElementById('mt-og').value.trim();
+
+  const out = `<!-- Primary -->
+<title>${title}</title>
+<meta name="description" content="${desc}">
+<meta name="theme-color" content="${theme}">
+<link rel="manifest" href="${manifest}">
+
+<!-- Apple -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="${apple}">
+<meta name="apple-mobile-web-app-title" content="${title}">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+<!-- Microsoft -->
+<meta name="msapplication-TileColor" content="${theme}">
+<meta name="msapplication-TileImage" content="/icons/icon-192.png">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${desc}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${og}">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${og}">`;
+  document.getElementById('mt-out').textContent = out;
+  showStatus('st-mt', 'success', 'Meta tags berhasil dibuat.');
+});
+document.getElementById('mt-copy').addEventListener('click', () => copyToClipboard(document.getElementById('mt-out').textContent, 'st-mt'));
+
+// ─── VALIDATOR ─────────────────────────────────────────────
+const REQUIRED = ['name', 'short_name', 'start_url', 'display', 'icons'];
+const RECOMMENDED = ['description', 'background_color', 'theme_color', 'scope', 'orientation'];
+document.getElementById('btn-vl-run').addEventListener('click', () => {
+  const ul = document.getElementById('vl-list'); ul.innerHTML = '';
+  let m;
+  try {
+    m = JSON.parse(document.getElementById('vl-input').value);
+  } catch (err) {
+    ul.innerHTML = `<li class="v-err">❌ JSON tidak valid: ${err.message}</li>`;
+    return;
+  }
+  const add = (cls, msg) => { const li = document.createElement('li'); li.className = cls; li.textContent = msg; ul.appendChild(li); };
+  REQUIRED.forEach(k => {
+    if (!(k in m) || m[k] === '' || (Array.isArray(m[k]) && m[k].length === 0)) add('v-err', `❌ Field wajib hilang: ${k}`);
+    else add('v-ok', `✅ ${k} OK`);
+  });
+  RECOMMENDED.forEach(k => {
+    if (!(k in m)) add('v-warn', `⚠️  ${k} disarankan diisi`);
+    else add('v-ok', `✅ ${k} OK`);
+  });
+  if (Array.isArray(m.icons) && m.icons.length) {
+    const has192 = m.icons.some(i => /192/.test(i.sizes || ''));
+    const has512 = m.icons.some(i => /512/.test(i.sizes || ''));
+    const maskable = m.icons.some(i => (i.purpose || '').includes('maskable'));
+    add(has192 ? 'v-ok' : 'v-err', has192 ? '✅ Icon 192×192 ada' : '❌ Icon 192×192 wajib ada');
+    add(has512 ? 'v-ok' : 'v-err', has512 ? '✅ Icon 512×512 ada' : '❌ Icon 512×512 wajib ada');
+    add(maskable ? 'v-ok' : 'v-warn', maskable ? '✅ Maskable icon ada' : '⚠️  Pertimbangkan menambahkan maskable icon');
+  }
+  if (m.display && !['standalone', 'fullscreen', 'minimal-ui', 'browser'].includes(m.display)) add('v-warn', `⚠️  Display "${m.display}" tidak standar`);
+  showStatus('st-vl', 'success', 'Validasi selesai.');
+});
+
+// ─── INSTALL PROMPT ────────────────────────────────────────
+document.getElementById('btn-ip-gen').addEventListener('click', () => {
+  const id = document.getElementById('ip-id').value.trim() || 'installBtn';
+  const hide = document.getElementById('ip-hide').value === 'yes';
+  const msg = document.getElementById('ip-msg').value.replace(/'/g, "\\'");
+  const out = `// install.js — Custom PWA install prompt
+let deferredPrompt = null;
+const btn = document.getElementById('${id}');
+if (btn) btn.style.display = 'none';
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (btn) btn.style.display = '';
+});
+
+if (btn) {
+  btn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('Install outcome:', outcome);
+    deferredPrompt = null;
+    if (outcome === 'accepted' && btn) btn.style.display = 'none';
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  console.log('${msg}');
+  ${hide ? `if (btn) btn.style.display = 'none';` : ''}
+  deferredPrompt = null;
+});`;
+  document.getElementById('ip-out').textContent = out;
+  showStatus('st-ip', 'success', 'Snippet install prompt berhasil dibuat.');
+});
+document.getElementById('ip-copy').addEventListener('click', () => copyToClipboard(document.getElementById('ip-out').textContent, 'st-ip'));
+document.getElementById('ip-dl').addEventListener('click', () => downloadText(document.getElementById('ip-out').textContent, 'install.js', 'text/javascript'));
+</script>
+
+</body>
+</html>
