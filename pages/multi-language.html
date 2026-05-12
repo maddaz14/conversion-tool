@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multi Language Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    pre.code-out { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 0.82rem; white-space: pre-wrap; word-break: break-all; max-height: 360px; overflow: auto; color: var(--text-main); }
+    .i18n-grid { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; }
+    .i18n-grid th, .i18n-grid td { border: 1px solid var(--border-color); padding: 6px; vertical-align: top; }
+    .i18n-grid th { background: var(--bg-card); position: sticky; top: 0; }
+    .i18n-grid input { width: 100%; background: transparent; border: none; color: var(--text-main); font: inherit; }
+    .i18n-grid input:focus { outline: 2px solid var(--primary); }
+    .lang-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .lang-tag { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 99px; padding: 4px 12px; font-size: 0.75rem; display: flex; align-items: center; gap: 6px; }
+    .lang-tag button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9rem; padding: 0; }
+    .locale-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .locale-table th, .locale-table td { padding: 8px 12px; border: 1px solid var(--border-color); text-align: left; }
+    .locale-table th { background: var(--bg-card); font-weight: 600; }
+    .locale-table code { color: var(--primary); }
+    .scroll-x { overflow-x: auto; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🌐 <span class="highlight">Multi Language Tools</span></h1>
+    <p>Utilitas i18n / l10n untuk developer — kelola translation key dengan editor side-by-side, merger, missing key finder, CSV ↔ JSON, key extractor dari source code, dan referensi kode locale BCP-47.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="editor"><span class="nav-emoji">📝</span> i18n Editor</button>
+        <button data-tool="merger"><span class="nav-emoji">🧬</span> i18n Merger</button>
+        <button data-tool="missing"><span class="nav-emoji">🔎</span> Missing Keys</button>
+        <button data-tool="csvjson"><span class="nav-emoji">🔄</span> CSV ↔ JSON</button>
+        <button data-tool="extractor"><span class="nav-emoji">📤</span> Key Extractor</button>
+        <button data-tool="locales"><span class="nav-emoji">🗺️</span> Locale Codes</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+
+      <!-- EDITOR -->
+      <div class="tool-panel" id="panel-editor">
+        <h2>📝 i18n JSON Editor</h2>
+        <p class="panel-desc">Kelola translation key untuk beberapa bahasa sekaligus dalam tabel. Tambahkan kolom bahasa, isi terjemahan, lalu export tiap bahasa sebagai JSON.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Tambah bahasa baru</label>
+            <input type="text" class="form-control" id="ed-new-lang" placeholder="contoh: en, id, ja, zh-CN" />
+          </div>
+          <div class="field">
+            <label>Aksi</label>
+            <div class="btn-row">
+              <button class="btn btn-sm" id="btn-ed-add-lang">➕ Bahasa</button>
+              <button class="btn btn-sm" id="btn-ed-add-row">➕ Key</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lang-tags" id="ed-lang-tags"></div>
+        <div class="scroll-x">
+          <table class="i18n-grid" id="ed-grid"></table>
+        </div>
+
+        <div class="btn-row mt-3">
+          <button class="btn btn-primary" id="btn-ed-export">⬇️ Export ZIP (tiap bahasa = 1 file)</button>
+          <button class="btn btn-sm" id="btn-ed-load">📂 Import JSON…</button>
+          <input type="file" id="file-ed-load" accept=".json" style="display:none" />
+          <button class="btn btn-sm" id="btn-ed-clear">↺ Reset</button>
+        </div>
+        <div class="status-alert" id="st-ed"></div>
+      </div>
+
+      <!-- MERGER -->
+      <div class="tool-panel" id="panel-merger">
+        <h2>🧬 i18n Merger</h2>
+        <p class="panel-desc">Gabungkan beberapa file JSON i18n menjadi satu. Berguna saat hasil terjemahan tim datang dalam potongan terpisah.</p>
+
+        <div class="field">
+          <label>Mode konflik</label>
+          <select class="form-control" id="mg-mode">
+            <option value="last">Yang terakhir menang</option>
+            <option value="first">Yang pertama menang</option>
+            <option value="error">Gagal jika ada konflik</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Tempel beberapa JSON (pisahkan dengan baris <code>---</code>)</label>
+          <textarea class="form-control" id="mg-input" rows="10" placeholder='{"hello":"Halo"}&#10;---&#10;{"bye":"Selamat tinggal"}'></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-mg-run">Gabungkan</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="mg-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="mg-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="mg-dl">⬇️ Unduh merged.json</button>
+        </div>
+        <div class="status-alert" id="st-mg"></div>
+      </div>
+
+      <!-- MISSING KEYS -->
+      <div class="tool-panel" id="panel-missing">
+        <h2>🔎 Missing Keys Finder</h2>
+        <p class="panel-desc">Bandingkan dua file JSON i18n untuk menemukan key yang hilang di salah satunya, plus key dengan nilai kosong / sama dengan source.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Source (referensi, contoh: en.json)</label>
+            <textarea class="form-control" id="mk-a" rows="10" placeholder='{"hello":"Hello","bye":"Bye"}'></textarea>
+          </div>
+          <div class="field">
+            <label>Target (contoh: id.json)</label>
+            <textarea class="form-control" id="mk-b" rows="10" placeholder='{"hello":"Halo"}'></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-mk-run">Bandingkan</button>
+
+        <div class="stat-grid mt-3">
+          <div class="stat-card"><div class="stat-value" id="mk-total">0</div><div class="stat-label">Total Source</div></div>
+          <div class="stat-card"><div class="stat-value" id="mk-missing">0</div><div class="stat-label">Missing</div></div>
+          <div class="stat-card"><div class="stat-value" id="mk-empty">0</div><div class="stat-label">Empty Value</div></div>
+          <div class="stat-card"><div class="stat-value" id="mk-same">0</div><div class="stat-label">Unchanged</div></div>
+          <div class="stat-card"><div class="stat-value" id="mk-extra">0</div><div class="stat-label">Extra in Target</div></div>
+        </div>
+
+        <div class="field mt-3">
+          <label>Detail</label>
+          <pre class="code-out" id="mk-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="mk-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="mk-dl">⬇️ Unduh missing.json</button>
+        </div>
+        <div class="status-alert" id="st-mk"></div>
+      </div>
+
+      <!-- CSV <-> JSON -->
+      <div class="tool-panel" id="panel-csvjson">
+        <h2>🔄 i18n CSV ↔ JSON</h2>
+        <p class="panel-desc">Konversi antara format spreadsheet (CSV) dan JSON i18n. Kolom pertama dianggap sebagai <code>key</code>, kolom berikutnya = setiap bahasa.</p>
+
+        <div class="field">
+          <label>Mode</label>
+          <select class="form-control" id="cj-mode">
+            <option value="c2j">CSV → JSON (per bahasa)</option>
+            <option value="j2c">JSON → CSV (multi-language merge)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Input</label>
+          <textarea class="form-control" id="cj-input" rows="10" placeholder="key,en,id,ja&#10;hello,Hello,Halo,こんにちは&#10;bye,Bye,Sampai jumpa,さようなら"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-cj-run">Konversi</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="cj-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="cj-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="cj-dl">⬇️ Unduh</button>
+        </div>
+        <div class="status-alert" id="st-cj"></div>
+      </div>
+
+      <!-- EXTRACTOR -->
+      <div class="tool-panel" id="panel-extractor">
+        <h2>📤 i18n Key Extractor</h2>
+        <p class="panel-desc">Ekstrak translation key dari source code. Default mendukung pola <code>t('...')</code>, <code>i18n.t('...')</code>, <code>$t('...')</code>, dan <code>tr('...')</code>. Atau pakai regex sendiri.</p>
+
+        <div class="field">
+          <label>Pattern Regex (1 group = key)</label>
+          <input type="text" class="form-control" id="ex-pattern" value="\\b(?:i18n\\.t|\\$t|t|tr)\\(\\s*['\"]([^'\"]+)['\"]" />
+        </div>
+        <div class="field">
+          <label>Source code (paste banyak file sekaligus)</label>
+          <textarea class="form-control" id="ex-input" rows="10" placeholder="// contoh JS/Vue/React&#10;return t('welcome.title');&#10;{{ $t('btn.ok') }}"></textarea>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-ex-run">Ekstrak</button>
+
+        <div class="stat-grid mt-3">
+          <div class="stat-card"><div class="stat-value" id="ex-total">0</div><div class="stat-label">Total Match</div></div>
+          <div class="stat-card"><div class="stat-value" id="ex-unique">0</div><div class="stat-label">Unique</div></div>
+        </div>
+
+        <div class="field mt-3">
+          <label>Hasil JSON (template kosong)</label>
+          <pre class="code-out" id="ex-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="ex-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="ex-dl">⬇️ Unduh template.json</button>
+        </div>
+        <div class="status-alert" id="st-ex"></div>
+      </div>
+
+      <!-- LOCALES -->
+      <div class="tool-panel" id="panel-locales">
+        <h2>🗺️ Locale Code Reference</h2>
+        <p class="panel-desc">Daftar referensi kode locale BCP-47 untuk dipakai di Android, iOS, atau web. Klik kode untuk menyalin.</p>
+
+        <div class="field">
+          <label>Cari</label>
+          <input type="text" class="form-control" id="lc-search" placeholder="contoh: indonesia, ja, brazil, china..." />
+        </div>
+
+        <div class="scroll-x">
+          <table class="locale-table" id="lc-table">
+            <thead><tr><th>Locale</th><th>Bahasa</th><th>Negara/Region</th><th>Alias</th></tr></thead>
+            <tbody id="lc-body"></tbody>
+          </table>
+        </div>
+        <div class="status-alert" id="st-lc"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🌐 Multi Language' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'editor');
+
+// ─── EDITOR ────────────────────────────────────────────────
+const ed = {
+  langs: ['en', 'id'],
+  rows: [{ key: 'welcome', vals: { en: 'Welcome', id: 'Selamat datang' } }, { key: 'btn.ok', vals: { en: 'OK', id: 'OK' } }]
+};
+function renderEdLangTags() {
+  const tags = document.getElementById('ed-lang-tags');
+  tags.innerHTML = ed.langs.map(l => `<div class="lang-tag">${l}${ed.langs.length > 1 ? `<button data-rm-lang="${l}" title="Hapus">✕</button>` : ''}</div>`).join('');
+  tags.querySelectorAll('[data-rm-lang]').forEach(b => b.addEventListener('click', () => {
+    const l = b.dataset.rmLang;
+    ed.langs = ed.langs.filter(x => x !== l);
+    ed.rows.forEach(r => delete r.vals[l]);
+    renderEdGrid();
+  }));
+}
+function renderEdGrid() {
+  const g = document.getElementById('ed-grid');
+  g.innerHTML = `<thead><tr><th>Key</th>${ed.langs.map(l => `<th>${l}</th>`).join('')}<th></th></tr></thead><tbody>${
+    ed.rows.map((r, i) => `<tr>
+      <td><input data-ri="${i}" data-col="key" value="${(r.key || '').replace(/"/g, '&quot;')}"></td>
+      ${ed.langs.map(l => `<td><input data-ri="${i}" data-col="${l}" value="${(r.vals[l] || '').replace(/"/g, '&quot;')}"></td>`).join('')}
+      <td><button class="btn btn-sm btn-danger" data-rm-row="${i}">✕</button></td>
+    </tr>`).join('')
+  }</tbody>`;
+  g.querySelectorAll('input').forEach(inp => inp.addEventListener('input', () => {
+    const i = +inp.dataset.ri, c = inp.dataset.col;
+    if (c === 'key') ed.rows[i].key = inp.value;
+    else ed.rows[i].vals[c] = inp.value;
+  }));
+  g.querySelectorAll('[data-rm-row]').forEach(b => b.addEventListener('click', () => {
+    ed.rows.splice(+b.dataset.rmRow, 1); renderEdGrid();
+  }));
+  renderEdLangTags();
+}
+document.getElementById('btn-ed-add-lang').addEventListener('click', () => {
+  const v = document.getElementById('ed-new-lang').value.trim();
+  if (!v || ed.langs.includes(v)) return;
+  ed.langs.push(v);
+  ed.rows.forEach(r => r.vals[v] = '');
+  document.getElementById('ed-new-lang').value = '';
+  renderEdGrid();
+});
+document.getElementById('btn-ed-add-row').addEventListener('click', () => {
+  const empty = {}; ed.langs.forEach(l => empty[l] = '');
+  ed.rows.push({ key: '', vals: empty });
+  renderEdGrid();
+});
+document.getElementById('btn-ed-clear').addEventListener('click', () => {
+  if (!confirm('Reset semua data?')) return;
+  ed.langs = ['en']; ed.rows = [{ key: '', vals: { en: '' } }]; renderEdGrid();
+});
+document.getElementById('btn-ed-load').addEventListener('click', () => document.getElementById('file-ed-load').click());
+document.getElementById('file-ed-load').addEventListener('change', async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const txt = await f.text();
+    const obj = JSON.parse(txt);
+    const lang = (f.name.replace(/\.json$/i, '') || 'lang');
+    if (!ed.langs.includes(lang)) ed.langs.push(lang);
+    Object.entries(obj).forEach(([k, v]) => {
+      let row = ed.rows.find(r => r.key === k);
+      if (!row) { row = { key: k, vals: {} }; ed.rows.push(row); }
+      row.vals[lang] = typeof v === 'string' ? v : JSON.stringify(v);
+    });
+    renderEdGrid();
+    showStatus('st-ed', 'success', `Loaded ${Object.keys(obj).length} key dari ${f.name}.`);
+  } catch (err) { showStatus('st-ed', 'error', 'JSON tidak valid: ' + err.message); }
+});
+document.getElementById('btn-ed-export').addEventListener('click', async () => {
+  const zip = new JSZip();
+  ed.langs.forEach(l => {
+    const obj = {};
+    ed.rows.forEach(r => { if (r.key) obj[r.key] = r.vals[l] || ''; });
+    zip.file(`${l}.json`, JSON.stringify(obj, null, 2));
+  });
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(blob, 'i18n.zip');
+  showStatus('st-ed', 'success', `Export ${ed.langs.length} file bahasa.`);
+});
+renderEdGrid();
+
+// ─── MERGER ────────────────────────────────────────────────
+document.getElementById('btn-mg-run').addEventListener('click', () => {
+  const mode = document.getElementById('mg-mode').value;
+  const parts = document.getElementById('mg-input').value.split(/^---\s*$/m).map(s => s.trim()).filter(Boolean);
+  let merged = {};
+  try {
+    for (const p of parts) {
+      const obj = JSON.parse(p);
+      for (const k of Object.keys(obj)) {
+        if (k in merged) {
+          if (mode === 'error' && merged[k] !== obj[k]) throw new Error(`Konflik pada key: ${k}`);
+          if (mode === 'first') continue;
+        }
+        merged[k] = obj[k];
+      }
+    }
+    document.getElementById('mg-out').textContent = JSON.stringify(merged, null, 2);
+    showStatus('st-mg', 'success', `${Object.keys(merged).length} key — dari ${parts.length} bagian.`);
+  } catch (err) {
+    showStatus('st-mg', 'error', err.message);
+  }
+});
+document.getElementById('mg-copy').addEventListener('click', () => copyToClipboard(document.getElementById('mg-out').textContent, 'st-mg'));
+document.getElementById('mg-dl').addEventListener('click', () => downloadText(document.getElementById('mg-out').textContent, 'merged.json', 'application/json'));
+
+// ─── MISSING ───────────────────────────────────────────────
+function flatten(obj, prefix = '', out = {}) {
+  for (const [k, v] of Object.entries(obj || {})) {
+    const kk = prefix ? `${prefix}.${k}` : k;
+    if (v && typeof v === 'object' && !Array.isArray(v)) flatten(v, kk, out);
+    else out[kk] = v;
+  }
+  return out;
+}
+document.getElementById('btn-mk-run').addEventListener('click', () => {
+  try {
+    const a = flatten(JSON.parse(document.getElementById('mk-a').value || '{}'));
+    const b = flatten(JSON.parse(document.getElementById('mk-b').value || '{}'));
+    const missing = [], empty = [], same = [], extra = [];
+    for (const k of Object.keys(a)) {
+      if (!(k in b)) missing.push(k);
+      else {
+        if (b[k] === '' || b[k] == null) empty.push(k);
+        else if (b[k] === a[k]) same.push(k);
+      }
+    }
+    for (const k of Object.keys(b)) if (!(k in a)) extra.push(k);
+
+    document.getElementById('mk-total').textContent = Object.keys(a).length;
+    document.getElementById('mk-missing').textContent = missing.length;
+    document.getElementById('mk-empty').textContent = empty.length;
+    document.getElementById('mk-same').textContent = same.length;
+    document.getElementById('mk-extra').textContent = extra.length;
+
+    const detail = { missing, empty, unchanged: same, extraInTarget: extra };
+    document.getElementById('mk-out').textContent = JSON.stringify(detail, null, 2);
+    showStatus('st-mk', 'success', 'Selesai dibandingkan.');
+  } catch (err) {
+    showStatus('st-mk', 'error', 'JSON tidak valid: ' + err.message);
+  }
+});
+document.getElementById('mk-copy').addEventListener('click', () => copyToClipboard(document.getElementById('mk-out').textContent, 'st-mk'));
+document.getElementById('mk-dl').addEventListener('click', () => downloadText(document.getElementById('mk-out').textContent, 'i18n-missing.json', 'application/json'));
+
+// ─── CSV ↔ JSON ───────────────────────────────────────────
+function parseCsv(txt) {
+  const rows = [];
+  let cur = [], cell = '', q = false;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (q) {
+      if (c === '"' && txt[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') q = false;
+      else cell += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ',') { cur.push(cell); cell = ''; }
+      else if (c === '\n') { cur.push(cell); rows.push(cur); cur = []; cell = ''; }
+      else if (c === '\r') { /* skip */ }
+      else cell += c;
+    }
+  }
+  if (cell.length || cur.length) { cur.push(cell); rows.push(cur); }
+  return rows;
+}
+function toCsvCell(s) {
+  s = String(s == null ? '' : s);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+document.getElementById('btn-cj-run').addEventListener('click', () => {
+  const mode = document.getElementById('cj-mode').value;
+  const txt = document.getElementById('cj-input').value;
+  try {
+    if (mode === 'c2j') {
+      const rows = parseCsv(txt).filter(r => r.length > 1 || (r[0] && r[0].trim()));
+      if (!rows.length) throw new Error('CSV kosong.');
+      const [head, ...data] = rows;
+      const result = {};
+      for (let i = 1; i < head.length; i++) {
+        const lang = head[i].trim();
+        const obj = {};
+        data.forEach(r => { if (r[0]) obj[r[0]] = r[i] || ''; });
+        result[lang] = obj;
+      }
+      document.getElementById('cj-out').textContent = JSON.stringify(result, null, 2);
+    } else {
+      const obj = JSON.parse(txt);
+      const langs = Object.keys(obj);
+      if (!langs.length) throw new Error('JSON harus berbentuk {lang: {key: val}}.');
+      const keys = Array.from(new Set(langs.flatMap(l => Object.keys(obj[l] || {}))));
+      const lines = ['key,' + langs.map(toCsvCell).join(',')];
+      keys.forEach(k => lines.push([k, ...langs.map(l => obj[l][k] || '')].map(toCsvCell).join(',')));
+      document.getElementById('cj-out').textContent = lines.join('\n');
+    }
+    showStatus('st-cj', 'success', 'Konversi berhasil.');
+  } catch (err) {
+    showStatus('st-cj', 'error', err.message);
+  }
+});
+document.getElementById('cj-copy').addEventListener('click', () => copyToClipboard(document.getElementById('cj-out').textContent, 'st-cj'));
+document.getElementById('cj-dl').addEventListener('click', () => {
+  const txt = document.getElementById('cj-out').textContent;
+  const mode = document.getElementById('cj-mode').value;
+  if (mode === 'c2j') downloadText(txt, 'i18n.json', 'application/json');
+  else downloadText(txt, 'i18n.csv', 'text/csv');
+});
+
+// ─── EXTRACTOR ─────────────────────────────────────────────
+document.getElementById('btn-ex-run').addEventListener('click', () => {
+  const pat = document.getElementById('ex-pattern').value;
+  const src = document.getElementById('ex-input').value;
+  try {
+    const re = new RegExp(pat, 'g');
+    const all = [];
+    let m;
+    while ((m = re.exec(src))) { all.push(m[1]); }
+    const uniq = Array.from(new Set(all)).sort();
+    document.getElementById('ex-total').textContent = all.length;
+    document.getElementById('ex-unique').textContent = uniq.length;
+    const template = {};
+    uniq.forEach(k => template[k] = '');
+    document.getElementById('ex-out').textContent = JSON.stringify(template, null, 2);
+    showStatus('st-ex', 'success', `${all.length} match, ${uniq.length} unik.`);
+  } catch (err) {
+    showStatus('st-ex', 'error', 'Regex tidak valid: ' + err.message);
+  }
+});
+document.getElementById('ex-copy').addEventListener('click', () => copyToClipboard(document.getElementById('ex-out').textContent, 'st-ex'));
+document.getElementById('ex-dl').addEventListener('click', () => downloadText(document.getElementById('ex-out').textContent, 'template.json', 'application/json'));
+
+// ─── LOCALES ───────────────────────────────────────────────
+const LOCALES = [
+  ['id-ID', 'Indonesian', 'Indonesia', 'id, in'],
+  ['en-US', 'English', 'United States', 'en'],
+  ['en-GB', 'English', 'United Kingdom', ''],
+  ['en-AU', 'English', 'Australia', ''],
+  ['ja-JP', 'Japanese', 'Japan', 'ja'],
+  ['ko-KR', 'Korean', 'Korea', 'ko'],
+  ['zh-CN', 'Chinese (Simplified)', 'China', 'zh, zh-Hans'],
+  ['zh-TW', 'Chinese (Traditional)', 'Taiwan', 'zh-Hant'],
+  ['zh-HK', 'Chinese (Cantonese)', 'Hong Kong', ''],
+  ['th-TH', 'Thai', 'Thailand', 'th'],
+  ['vi-VN', 'Vietnamese', 'Vietnam', 'vi'],
+  ['ms-MY', 'Malay', 'Malaysia', 'ms'],
+  ['fil-PH', 'Filipino', 'Philippines', 'tl-PH'],
+  ['hi-IN', 'Hindi', 'India', 'hi'],
+  ['ar-SA', 'Arabic', 'Saudi Arabia', 'ar'],
+  ['fa-IR', 'Persian', 'Iran', 'fa'],
+  ['tr-TR', 'Turkish', 'Turkey', 'tr'],
+  ['ru-RU', 'Russian', 'Russia', 'ru'],
+  ['uk-UA', 'Ukrainian', 'Ukraine', 'uk'],
+  ['fr-FR', 'French', 'France', 'fr'],
+  ['fr-CA', 'French', 'Canada', ''],
+  ['es-ES', 'Spanish', 'Spain', 'es'],
+  ['es-MX', 'Spanish', 'Mexico', ''],
+  ['es-AR', 'Spanish', 'Argentina', ''],
+  ['pt-PT', 'Portuguese', 'Portugal', 'pt'],
+  ['pt-BR', 'Portuguese', 'Brazil', ''],
+  ['de-DE', 'German', 'Germany', 'de'],
+  ['it-IT', 'Italian', 'Italy', 'it'],
+  ['nl-NL', 'Dutch', 'Netherlands', 'nl'],
+  ['pl-PL', 'Polish', 'Poland', 'pl'],
+  ['sv-SE', 'Swedish', 'Sweden', 'sv'],
+  ['no-NO', 'Norwegian', 'Norway', 'no, nb'],
+  ['da-DK', 'Danish', 'Denmark', 'da'],
+  ['fi-FI', 'Finnish', 'Finland', 'fi'],
+  ['cs-CZ', 'Czech', 'Czechia', 'cs'],
+  ['el-GR', 'Greek', 'Greece', 'el'],
+  ['he-IL', 'Hebrew', 'Israel', 'he, iw'],
+  ['hu-HU', 'Hungarian', 'Hungary', 'hu'],
+  ['ro-RO', 'Romanian', 'Romania', 'ro'],
+  ['sk-SK', 'Slovak', 'Slovakia', 'sk'],
+  ['bg-BG', 'Bulgarian', 'Bulgaria', 'bg'],
+  ['hr-HR', 'Croatian', 'Croatia', 'hr'],
+  ['sr-RS', 'Serbian', 'Serbia', 'sr'],
+  ['bn-IN', 'Bengali', 'India', 'bn'],
+  ['ta-IN', 'Tamil', 'India', 'ta'],
+  ['ur-PK', 'Urdu', 'Pakistan', 'ur'],
+  ['sw-KE', 'Swahili', 'Kenya', 'sw'],
+  ['am-ET', 'Amharic', 'Ethiopia', 'am']
+];
+function renderLocales(filter = '') {
+  const f = filter.toLowerCase();
+  const body = document.getElementById('lc-body');
+  body.innerHTML = LOCALES.filter(([c, lang, reg, al]) =>
+    !f || [c, lang, reg, al].some(x => (x || '').toLowerCase().includes(f))
+  ).map(([c, lang, reg, al]) => `
+    <tr>
+      <td><code class="lc-code" style="cursor:pointer">${c}</code></td>
+      <td>${lang}</td>
+      <td>${reg}</td>
+      <td><span style="color:var(--text-muted);font-size:0.78rem">${al}</span></td>
+    </tr>`).join('');
+  body.querySelectorAll('.lc-code').forEach(el => el.addEventListener('click', () => copyToClipboard(el.textContent, 'st-lc')));
+}
+document.getElementById('lc-search').addEventListener('input', e => renderLocales(e.target.value));
+renderLocales();
+</script>
+
+</body>
+</html>
