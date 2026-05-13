@@ -2,16 +2,11 @@
   "name": "conversion-tool",
   "version": "1.0.0",
   "description": "Online tools suite with APK builder",
+  "private": true,
   "scripts": {
-    "dev": "npx serve .",
-    "build": "echo 'Static site, no build needed'",
-    "start": "npx serve ."
+    "build": "true"
   },
   "dependencies": {
-    "jszip": "^3.10.1",
     "@supabase/supabase-js": "^2.39.0"
-  },
-  "devDependencies": {
-    "serve": "^14.2.1"
   }
 }
