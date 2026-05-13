@@ -20,7 +20,12 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        run: |
+          ANDROID_SDK=/usr/local/lib/android/sdk
+          echo "ANDROID_HOME=$ANDROID_SDK" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK" >> $GITHUB_ENV
+          yes | $ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+          $ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" 2>/dev/null
 
       - name: Install Cordova
         run: npm install -g cordova@12
@@ -43,6 +48,7 @@ jobs:
           cordova create build-output "$PKG" "$APP"
           cd build-output
           cordova platform add android@12
+          echo "sdk.dir=$ANDROID_HOME" > platforms/android/local.properties
 
       - name: Add content based on type
         run: |
@@ -59,21 +65,19 @@ jobs:
       - name: Configure Cordova project
         run: |
           cd build-output
-          VCODE="${{ github.event.client_payload.version_code }}"
           VNAME="${{ github.event.client_payload.version_name }}"
           sed -i "s|version=\"1.0.0\"|version=\"$VNAME\"|" config.xml
           sed -i 's|</widget>|    <access origin="*" />\n    <allow-navigation href="*" />\n</widget>|' config.xml
 
-      - name: Build APK (debug â€” no signing required)
+      - name: Build APK
         run: |
           cd build-output
-          cordova build android -- --packageType=apk
+          cordova build android --debug
 
       - name: Find APK
         id: apk-info
         run: |
-          APK=$(find build-output/platforms/android -name "*.apk" | grep -v 'unsigned' | head -1)
-          [ -z "$APK" ] && APK=$(find build-output/platforms/android -name "*.apk" | head -1)
+          APK=$(find build-output/platforms/android -name "*.apk" | head -1)
           echo "path=$APK" >> $GITHUB_OUTPUT
           echo "size=$(stat -c%s "$APK")" >> $GITHUB_OUTPUT
 
