@@ -20,12 +20,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Android SDK
-        run: |
-          ANDROID_SDK=/usr/local/lib/android/sdk
-          echo "ANDROID_HOME=$ANDROID_SDK" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK" >> $GITHUB_ENV
-          yes | $ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
-          $ANDROID_SDK/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2" 2>/dev/null
+        uses: android-actions/setup-android@v3  # ← ganti pakai action resmi
 
       - name: Install Cordova
         run: npm install -g cordova@12
@@ -47,7 +42,7 @@ jobs:
           APP="${{ github.event.client_payload.app_name }}"
           cordova create build-output "$PKG" "$APP"
           cd build-output
-          cordova platform add android@12
+          cordova platform add android  # ← hapus @12, biarkan auto pilih versi
           echo "sdk.dir=$ANDROID_HOME" > platforms/android/local.properties
 
       - name: Add content based on type
@@ -70,9 +65,6 @@ jobs:
           sed -i 's|</widget>|    <access origin="*" />\n    <allow-navigation href="*" />\n</widget>|' config.xml
 
       - name: Build APK
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           cd build-output/platforms/android
           echo "sdk.dir=$ANDROID_HOME" > local.properties
