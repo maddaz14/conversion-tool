@@ -51,9 +51,9 @@ jobs:
           WWW="build-output/www"
           rm -f "$WWW/index.html"
           if [ "$TYPE" = "url" ]; then
-            echo "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><style>*{margin:0;padding:0}body,html{height:100%}iframe{width:100%;height:100%;border:none;display:block}</style></head><body><iframe src=\"$CONTENT\"></iframe></body></html>" > "$WWW/index.html"
+            printf '%s%s%s' '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0}body,html{height:100%}iframe{width:100%;height:100%;border:none;display:block}</style></head><body><iframe src="' "$CONTENT" '"></iframe></body></html>' > "$WWW/index.html"
           elif [ "$TYPE" = "html" ]; then
-            echo "$CONTENT" | base64 -d > "$WWW/index.html"
+            printf '%s' "$CONTENT" | base64 -d > "$WWW/index.html"
           fi
 
       - name: Configure Cordova project
