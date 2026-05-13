@@ -70,9 +70,14 @@ jobs:
           sed -i 's|</widget>|    <access origin="*" />\n    <allow-navigation href="*" />\n</widget>|' config.xml
 
       - name: Build APK
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
-          cd build-output
-          cordova build android --debug
+          cd build-output/platforms/android
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Find APK
         id: apk-info
