@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APK Builder Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    .kv-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
+    .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; max-height: 320px; overflow-y: auto; padding: 12px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; }
+    .perm-grid label { display: flex; gap: 6px; align-items: flex-start; font-size: 0.82rem; cursor: pointer; }
+    .perm-grid label code { font-family: var(--font-mono); color: var(--primary); font-size: 0.75rem; }
+    .icon-preview { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; margin-top: 14px; }
+    .icon-preview .icon-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; text-align: center; }
+    .icon-preview .icon-card img { display: block; margin: 0 auto 8px; image-rendering: pixelated; }
+    .icon-preview .icon-card span { font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); }
+    pre.code-out { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 14px; font-family: var(--font-mono); font-size: 0.82rem; white-space: pre-wrap; word-break: break-all; max-height: 360px; overflow: auto; color: var(--text-main); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>📱 <span class="highlight">APK Builder Tools</span></h1>
+    <p>Generator helper untuk pengembangan Android — AndroidManifest, launcher icon set, strings.xml, colors.xml, permission picker, dan build.gradle snippet. Cocok dipakai sebelum build APK di Android Studio.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="manifest"><span class="nav-emoji">📄</span> AndroidManifest</button>
+        <button data-tool="icons"><span class="nav-emoji">🎨</span> Launcher Icon Set</button>
+        <button data-tool="strings"><span class="nav-emoji">🔤</span> strings.xml</button>
+        <button data-tool="colors"><span class="nav-emoji">🌈</span> colors.xml</button>
+        <button data-tool="perms"><span class="nav-emoji">🔐</span> Permissions Picker</button>
+        <button data-tool="gradle"><span class="nav-emoji">⚙️</span> build.gradle</button>
+        <button data-tool="html2apk"><span class="nav-emoji">🌐</span> HTML/URL to APK</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+
+      <!-- MANIFEST -->
+      <div class="tool-panel" id="panel-manifest">
+        <h2>📄 AndroidManifest.xml Generator</h2>
+        <p class="panel-desc">Isi form di bawah untuk menghasilkan AndroidManifest.xml lengkap dengan application + main activity.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Package Name</label>
+            <input type="text" class="form-control" id="mf-pkg" value="com.example.app" />
+          </div>
+          <div class="field">
+            <label>App Label</label>
+            <input type="text" class="form-control" id="mf-label" value="My App" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Version Code</label>
+            <input type="number" class="form-control" id="mf-vcode" value="1" min="1" />
+          </div>
+          <div class="field">
+            <label>Version Name</label>
+            <input type="text" class="form-control" id="mf-vname" value="1.0.0" />
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field">
+            <label>Min SDK</label>
+            <input type="number" class="form-control" id="mf-min" value="21" />
+          </div>
+          <div class="field">
+            <label>Target SDK</label>
+            <input type="number" class="form-control" id="mf-target" value="34" />
+          </div>
+          <div class="field">
+            <label>Compile SDK</label>
+            <input type="number" class="form-control" id="mf-compile" value="34" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Main Activity Class</label>
+            <input type="text" class="form-control" id="mf-act" value=".MainActivity" />
+          </div>
+          <div class="field">
+            <label>Theme</label>
+            <input type="text" class="form-control" id="mf-theme" value="@style/Theme.MyApp" />
+          </div>
+        </div>
+        <div class="field-row-3">
+          <label class="checkbox-row"><input type="checkbox" id="mf-internet" checked /><span>INTERNET</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="mf-network" checked /><span>ACCESS_NETWORK_STATE</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="mf-storage" /><span>READ_EXTERNAL_STORAGE</span></label>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-mf-gen">Generate Manifest</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="mf-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="mf-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="mf-dl">⬇️ Unduh AndroidManifest.xml</button>
+        </div>
+        <div class="status-alert" id="st-mf"></div>
+      </div>
+
+      <!-- ICONS -->
+      <div class="tool-panel" id="panel-icons">
+        <h2>🎨 Android Launcher Icon Set</h2>
+        <p class="panel-desc">Upload 1 gambar persegi (PNG/JPG min 512×512) — sistem akan generate ic_launcher.png untuk semua density: mdpi (48), hdpi (72), xhdpi (96), xxhdpi (144), xxxhdpi (192). Hasil dalam ZIP folder res/mipmap-*.</p>
+
+        <div class="dropzone" id="dz-icon">
+          <input type="file" id="file-icon" accept="image/*" />
+          <div class="drop-icon">🖼️</div>
+          <h3>Pilih gambar source</h3>
+          <p>Persegi, min 512×512 untuk hasil terbaik</p>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Nama File</label>
+            <input type="text" class="form-control" id="ic-name" value="ic_launcher" />
+          </div>
+          <div class="field">
+            <label>Format</label>
+            <select class="form-control" id="ic-fmt">
+              <option value="png">PNG</option>
+              <option value="webp">WEBP</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-ic-gen" disabled>Generate Icon Set & Unduh ZIP</button>
+        <div class="icon-preview" id="ic-preview"></div>
+        <div class="status-alert" id="st-ic"></div>
+      </div>
+
+      <!-- STRINGS -->
+      <div class="tool-panel" id="panel-strings">
+        <h2>🔤 strings.xml Generator</h2>
+        <p class="panel-desc">Tambahkan baris key-value untuk membangun file <code>res/values/strings.xml</code> dengan escaping otomatis.</p>
+
+        <div id="str-rows"></div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="btn-str-add">➕ Tambah Baris</button>
+          <button class="btn btn-sm" id="btn-str-clear">↺ Reset</button>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-str-gen">Generate strings.xml</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="str-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="str-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="str-dl">⬇️ Unduh strings.xml</button>
+        </div>
+        <div class="status-alert" id="st-str"></div>
+      </div>
+
+      <!-- COLORS -->
+      <div class="tool-panel" id="panel-colors">
+        <h2>🌈 colors.xml Generator</h2>
+        <p class="panel-desc">Tentukan palet warna untuk <code>res/values/colors.xml</code>. Format hex AARRGGBB / RRGGBB didukung.</p>
+
+        <div id="col-rows"></div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="btn-col-add">➕ Tambah Warna</button>
+          <button class="btn btn-sm" id="btn-col-mat">🎨 Preset Material</button>
+          <button class="btn btn-sm" id="btn-col-clear">↺ Reset</button>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-col-gen">Generate colors.xml</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="col-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="col-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="col-dl">⬇️ Unduh colors.xml</button>
+        </div>
+        <div class="status-alert" id="st-col"></div>
+      </div>
+
+      <!-- PERMISSIONS -->
+      <div class="tool-panel" id="panel-perms">
+        <h2>🔐 Android Permissions Picker</h2>
+        <p class="panel-desc">Pilih permission yang dibutuhkan aplikasi, sistem akan menghasilkan snippet <code>&lt;uses-permission&gt;</code> siap tempel ke AndroidManifest.xml.</p>
+
+        <div class="field">
+          <label>Cari permission</label>
+          <input type="text" class="form-control" id="perm-search" placeholder="contoh: CAMERA, LOCATION, BLUETOOTH..." />
+        </div>
+
+        <div class="perm-grid" id="perm-list"></div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-perm-gen">Generate Snippet</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="perm-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="perm-copy">📋 Salin</button>
+        </div>
+        <div class="status-alert" id="st-perm"></div>
+      </div>
+
+      <!-- GRADLE -->
+      <div class="tool-panel" id="panel-gradle">
+        <h2>⚙️ build.gradle (app) Snippet</h2>
+        <p class="panel-desc">Hasilkan blok <code>android { ... }</code> untuk modul app dengan konfigurasi sdk, signing, build types, dan flavor sederhana.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>applicationId</label>
+            <input type="text" class="form-control" id="gr-pkg" value="com.example.app" />
+          </div>
+          <div class="field">
+            <label>namespace</label>
+            <input type="text" class="form-control" id="gr-ns" value="com.example.app" />
+          </div>
+        </div>
+        <div class="field-row-3">
+          <div class="field"><label>minSdk</label><input type="number" class="form-control" id="gr-min" value="21" /></div>
+          <div class="field"><label>targetSdk</label><input type="number" class="form-control" id="gr-target" value="34" /></div>
+          <div class="field"><label>compileSdk</label><input type="number" class="form-control" id="gr-compile" value="34" /></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>versionCode</label><input type="number" class="form-control" id="gr-vcode" value="1" /></div>
+          <div class="field"><label>versionName</label><input type="text" class="form-control" id="gr-vname" value="1.0.0" /></div>
+        </div>
+        <div class="field-row-3">
+          <label class="checkbox-row"><input type="checkbox" id="gr-min-en" /><span>Enable minify (release)</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="gr-shrink" /><span>Enable shrinkResources</span></label>
+          <label class="checkbox-row"><input type="checkbox" id="gr-vb" /><span>Enable viewBinding</span></label>
+        </div>
+
+        <button class="btn btn-primary btn-block mt-3" id="btn-gr-gen">Generate build.gradle</button>
+
+        <div class="field mt-3">
+          <label>Output</label>
+          <pre class="code-out" id="gr-out"></pre>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="gr-copy">📋 Salin</button>
+          <button class="btn btn-sm" id="gr-dl">⬇️ Unduh build.gradle</button>
+        </div>
+        <div class="status-alert" id="st-gr"></div>
+      </div>
+
+      <!-- HTML/URL TO APK -->
+      <div class="tool-panel" id="panel-html2apk">
+        <h2>🌐 HTML/URL to APK Converter</h2>
+        <p class="panel-desc">Konversi file HTML, ZIP, atau URL website menjadi aplikasi Android APK. APK akan dibangun menggunakan Cordova dan siap install.</p>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Input Type</label>
+            <select class="form-control" id="h2a-type">
+              <option value="url">📍 URL Website</option>
+              <option value="html">📄 File HTML</option>
+              <option value="zip">📦 File ZIP</option>
+            </select>
+          </div>
+          <div class="field" id="h2a-input-field">
+            <label>Website URL</label>
+            <input type="text" class="form-control" id="h2a-input" placeholder="https://example.com" />
+          </div>
+        </div>
+
+        <div id="h2a-file-zone" style="display: none;">
+          <div class="dropzone" id="dz-html">
+            <input type="file" id="file-html" accept=".html,.htm,.zip" />
+            <div class="drop-icon">📄</div>
+            <h3>Pilih file HTML atau ZIP</h3>
+            <p>Drag & drop atau klik untuk upload</p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Package Name</label>
+            <input type="text" class="form-control" id="h2a-pkg" value="com.html.webapp" />
+          </div>
+          <div class="field">
+            <label>App Name</label>
+            <input type="text" class="form-control" id="h2a-appname" value="My Web App" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Version Code</label>
+            <input type="number" class="form-control" id="h2a-vcode" value="1" min="1" />
+          </div>
+          <div class="field">
+            <label>Version Name</label>
+            <input type="text" class="form-control" id="h2a-vname" value="1.0.0" />
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-block" id="btn-h2a-gen">🚀 Build APK (5-10 menit)</button>
+
+        <div id="build-progress" style="display: none;">
+          <div class="field mt-3">
+            <label>Build Status</label>
+            <div class="status-alert" id="build-status">⏳ Initializing build...</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <div id="build-result" style="display: none;">
+          <div class="field mt-3">
+            <label>✅ APK Ready!</label>
+            <div class="status-alert success" id="result-status"></div>
+          </div>
+          <button class="btn btn-success btn-block" id="btn-download-apk">⬇️ Download APK</button>
+        </div>
+
+        <div class="status-alert" id="st-h2a"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '📱 APK Builder' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'manifest');
+
+// ─── MANIFEST ──────────────────────────────────────────────
+function buildManifest() {
+  const pkg = document.getElementById('mf-pkg').value.trim() || 'com.example.app';
+  const label = document.getElementById('mf-label').value.trim() || 'My App';
+  const vcode = parseInt(document.getElementById('mf-vcode').value) || 1;
+  const vname = document.getElementById('mf-vname').value.trim() || '1.0.0';
+  const min = parseInt(document.getElementById('mf-min').value) || 21;
+  const target = parseInt(document.getElementById('mf-target').value) || 34;
+  const act = document.getElementById('mf-act').value.trim() || '.MainActivity';
+  const theme = document.getElementById('mf-theme').value.trim() || '@style/Theme.MyApp';
+  const perms = [];
+  if (document.getElementById('mf-internet').checked) perms.push('android.permission.INTERNET');
+  if (document.getElementById('mf-network').checked) perms.push('android.permission.ACCESS_NETWORK_STATE');
+  if (document.getElementById('mf-storage').checked) perms.push('android.permission.READ_EXTERNAL_STORAGE');
+
+  return `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="${pkg}"
+    android:versionCode="${vcode}"
+    android:versionName="${vname}">
+
+    <uses-sdk
+        android:minSdkVersion="${min}"
+        android:targetSdkVersion="${target}" />
+
+${perms.map(p => `    <uses-permission android:name="${p}" />`).join('\n')}
+
+    <application
+        android:label="${label}"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:theme="${theme}"
+        android:allowBackup="true"
+        android:supportsRtl="true">
+
+        <activity
+            android:name="${act}"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>`;
+}
+document.getElementById('btn-mf-gen').addEventListener('click', () => {
+  const out = buildManifest();
+  document.getElementById('mf-out').textContent = out;
+  showStatus('st-mf', 'success', 'AndroidManifest.xml berhasil dibuat.');
+});
+document.getElementById('mf-copy').addEventListener('click', () => copyToClipboard(document.getElementById('mf-out').textContent, 'st-mf'));
+document.getElementById('mf-dl').addEventListener('click', () => {
+  const txt = document.getElementById('mf-out').textContent || buildManifest();
+  downloadText(txt, 'AndroidManifest.xml', 'application/xml');
+});
+
+// ─── ICONS ──────────────────────────────────────────────────
+const ICON_SIZES = [
+  { d: 'mdpi', size: 48 },
+  { d: 'hdpi', size: 72 },
+  { d: 'xhdpi', size: 96 },
+  { d: 'xxhdpi', size: 144 },
+  { d: 'xxxhdpi', size: 192 }
+];
+let iconSourceImg = null;
+setupDropzone('dz-icon', 'file-icon', files => {
+  const f = files[0];
+  if (!f || !f.type.startsWith('image/')) {
+    showStatus('st-ic', 'error', 'File harus berupa gambar.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      iconSourceImg = img;
+      document.getElementById('btn-ic-gen').disabled = false;
+      showStatus('st-ic', 'success', `Source loaded: ${img.naturalWidth}×${img.naturalHeight}.`);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(f);
+});
+function renderIconAt(size, fmt) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(iconSourceImg, 0, 0, size, size);
+  return new Promise(resolve => {
+    c.toBlob(b => resolve({ blob: b, dataUrl: c.toDataURL(fmt === 'webp' ? 'image/webp' : 'image/png') }), fmt === 'webp' ? 'image/webp' : 'image/png');
+  });
+}
+document.getElementById('btn-ic-gen').addEventListener('click', async () => {
+  if (!iconSourceImg) return;
+  const name = (document.getElementById('ic-name').value.trim() || 'ic_launcher').replace(/[^a-z0-9_]/gi, '_').toLowerCase();
+  const fmt = document.getElementById('ic-fmt').value;
+  const preview = document.getElementById('ic-preview');
+  preview.innerHTML = '';
+  const zip = new JSZip();
+  for (const { d, size } of ICON_SIZES) {
+    const { blob, dataUrl } = await renderIconAt(size, fmt);
+    zip.folder(`res/mipmap-${d}`).file(`${name}.${fmt}`, blob);
+    const card = document.createElement('div');
+    card.className = 'icon-card';
+    card.innerHTML = `<img src="${dataUrl}" width="${Math.min(96, size)}" height="${Math.min(96, size)}"><span>mipmap-${d}<br>${size}×${size}</span>`;
+    preview.appendChild(card);
+  }
+  const blob = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(blob, `${name}-mipmap.zip`);
+  showStatus('st-ic', 'success', `Berhasil — ${ICON_SIZES.length} icon dibuat & di-zip.`);
+});
+
+// ─── STRINGS.XML ───────────────────────────────────────────
+const strRows = document.getElementById('str-rows');
+function addStrRow(k = '', v = '') {
+  const row = document.createElement('div');
+  row.className = 'kv-row';
+  row.innerHTML = `
+    <input type="text" class="form-control str-k" placeholder="app_name" value="${k.replace(/"/g, '&quot;')}">
+    <input type="text" class="form-control str-v" placeholder="My App" value="${v.replace(/"/g, '&quot;')}">
+    <button class="btn btn-sm btn-danger row-del">✕</button>`;
+  row.querySelector('.row-del').addEventListener('click', () => row.remove());
+  strRows.appendChild(row);
+}
+function escapeXml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '\\\'');
+}
+document.getElementById('btn-str-add').addEventListener('click', () => addStrRow());
+document.getElementById('btn-str-clear').addEventListener('click', () => {
+  strRows.innerHTML = '';
+  ['app_name', 'welcome_msg', 'btn_ok', 'btn_cancel'].forEach(k => addStrRow(k, ''));
+});
+['app_name|My App', 'welcome_msg|Welcome to My App', 'btn_ok|OK', 'btn_cancel|Cancel'].forEach(p => { const [k, v] = p.split('|'); addStrRow(k, v); });
+
+function buildStrings() {
+  const rows = [...strRows.querySelectorAll('.kv-row')];
+  const items = rows.map(r => ({ k: r.querySelector('.str-k').value.trim(), v: r.querySelector('.str-v').value })).filter(r => r.k);
+  return `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+${items.map(i => `    <string name="${escapeXml(i.k)}">${escapeXml(i.v)}</string>`).join('\n')}
+</resources>`;
+}
+document.getElementById('btn-str-gen').addEventListener('click', () => {
+  const xml = buildStrings();
+  document.getElementById('str-out').textContent = xml;
+  showStatus('st-str', 'success', 'strings.xml berhasil dibuat.');
+});
+document.getElementById('str-copy').addEventListener('click', () => copyToClipboard(document.getElementById('str-out').textContent, 'st-str'));
+document.getElementById('str-dl').addEventListener('click', () => downloadText(document.getElementById('str-out').textContent || buildStrings(), 'strings.xml', 'application/xml'));
+
+// ─── COLORS.XML ────────────────────────────────────────────
+const colRows = document.getElementById('col-rows');
+function addColRow(k = 'colorPrimary', v = '#3F51B5') {
+  const row = document.createElement('div');
+  row.className = 'kv-row';
+  row.innerHTML = `
+    <input type="text" class="form-control col-k" placeholder="colorPrimary" value="${k}">
+    <input type="text" class="form-control col-v" placeholder="#3F51B5" value="${v}">
+    <button class="btn btn-sm btn-danger row-del">✕</button>`;
+  row.querySelector('.row-del').addEventListener('click', () => row.remove());
+  colRows.appendChild(row);
+}
+document.getElementById('btn-col-add').addEventListener('click', () => addColRow('', '#000000'));
+document.getElementById('btn-col-clear').addEventListener('click', () => { colRows.innerHTML = ''; });
+document.getElementById('btn-col-mat').addEventListener('click', () => {
+  colRows.innerHTML = '';
+  [
+    ['colorPrimary', '#6200EE'],
+    ['colorPrimaryDark', '#3700B3'],
+    ['colorAccent', '#03DAC5'],
+    ['colorOnPrimary', '#FFFFFF'],
+    ['colorSurface', '#FFFFFF'],
+    ['colorError', '#B00020']
+  ].forEach(([k, v]) => addColRow(k, v));
+});
+['colorPrimary|#3F51B5', 'colorPrimaryDark|#303F9F', 'colorAccent|#FF4081'].forEach(p => { const [k, v] = p.split('|'); addColRow(k, v); });
+
+function normHex(v) {
+  let s = v.trim().replace(/^#/, '').toUpperCase();
+  if (/^[0-9A-F]{6}$/.test(s)) return '#' + s;
+  if (/^[0-9A-F]{8}$/.test(s)) return '#' + s;
+  if (/^[0-9A-F]{3}$/.test(s)) return '#' + s.split('').map(c => c + c).join('');
+  return '#' + s;
+}
+function buildColors() {
+  const rows = [...colRows.querySelectorAll('.kv-row')];
+  const items = rows.map(r => ({ k: r.querySelector('.col-k').value.trim(), v: normHex(r.querySelector('.col-v').value) })).filter(r => r.k);
+  return `<?xml version="1.0" encoding="utf-8"?>
+<resources>
+${items.map(i => `    <color name="${escapeXml(i.k)}">${i.v}</color>`).join('\n')}
+</resources>`;
+}
+document.getElementById('btn-col-gen').addEventListener('click', () => {
+  const xml = buildColors();
+  document.getElementById('col-out').textContent = xml;
+  showStatus('st-col', 'success', 'colors.xml berhasil dibuat.');
+});
+document.getElementById('col-copy').addEventListener('click', () => copyToClipboard(document.getElementById('col-out').textContent, 'st-col'));
+document.getElementById('col-dl').addEventListener('click', () => downloadText(document.getElementById('col-out').textContent || buildColors(), 'colors.xml', 'application/xml'));
+
+// ─── PERMISSIONS ───────────────────────────────────────────
+const ALL_PERMS = [
+  ['INTERNET', 'Akses jaringan'],
+  ['ACCESS_NETWORK_STATE', 'Cek status jaringan'],
+  ['ACCESS_WIFI_STATE', 'Info WiFi'],
+  ['CAMERA', 'Akses kamera'],
+  ['RECORD_AUDIO', 'Rekam audio (mic)'],
+  ['READ_EXTERNAL_STORAGE', 'Baca storage'],
+  ['WRITE_EXTERNAL_STORAGE', 'Tulis storage'],
+  ['READ_MEDIA_IMAGES', 'Akses foto (Android 13+)'],
+  ['READ_MEDIA_VIDEO', 'Akses video (Android 13+)'],
+  ['READ_MEDIA_AUDIO', 'Akses audio (Android 13+)'],
+  ['ACCESS_FINE_LOCATION', 'GPS akurat'],
+  ['ACCESS_COARSE_LOCATION', 'Lokasi network'],
+  ['ACCESS_BACKGROUND_LOCATION', 'Lokasi background'],
+  ['BLUETOOTH', 'Bluetooth (legacy)'],
+  ['BLUETOOTH_CONNECT', 'BLE connect (12+)'],
+  ['BLUETOOTH_SCAN', 'BLE scan (12+)'],
+  ['NFC', 'Akses NFC'],
+  ['VIBRATE', 'Getar device'],
+  ['WAKE_LOCK', 'Tahan layar nyala'],
+  ['FOREGROUND_SERVICE', 'Foreground service'],
+  ['POST_NOTIFICATIONS', 'Notifikasi (13+)'],
+  ['RECEIVE_BOOT_COMPLETED', 'Jalan saat boot'],
+  ['READ_CONTACTS', 'Baca kontak'],
+  ['WRITE_CONTACTS', 'Tulis kontak'],
+  ['READ_CALENDAR', 'Baca kalender'],
+  ['WRITE_CALENDAR', 'Tulis kalender'],
+  ['READ_SMS', 'Baca SMS'],
+  ['SEND_SMS', 'Kirim SMS'],
+  ['CALL_PHONE', 'Lakukan panggilan'],
+  ['READ_PHONE_STATE', 'Status telepon'],
+  ['REQUEST_INSTALL_PACKAGES', 'Install APK'],
+  ['BIOMETRIC', 'Sidik jari / Face']
+];
+const permListEl = document.getElementById('perm-list');
+function renderPermList(filter = '') {
+  const f = filter.toLowerCase();
+  permListEl.innerHTML = ALL_PERMS.filter(([p, d]) => !f || p.toLowerCase().includes(f) || d.toLowerCase().includes(f))
+    .map(([p, d]) => `<label><input type="checkbox" data-perm="${p}"><div><strong>${d}</strong><br><code>${p}</code></div></label>`).join('');
+}
+renderPermList();
+document.getElementById('perm-search').addEventListener('input', e => renderPermList(e.target.value));
+document.getElementById('btn-perm-gen').addEventListener('click', () => {
+  const checked = [...permListEl.querySelectorAll('input[type=checkbox]:checked')].map(i => i.dataset.perm);
+  if (!checked.length) { showStatus('st-perm', 'error', 'Pilih minimal 1 permission.'); return; }
+  document.getElementById('perm-out').textContent = checked.map(p => `<uses-permission android:name="android.permission.${p}" />`).join('\n');
+  showStatus('st-perm', 'success', `${checked.length} permission dihasilkan.`);
+});
+document.getElementById('perm-copy').addEventListener('click', () => copyToClipboard(document.getElementById('perm-out').textContent, 'st-perm'));
+
+// ─── GRADLE ────────────────────────────────────────────────
+function buildGradle() {
+  const pkg = document.getElementById('gr-pkg').value.trim() || 'com.example.app';
+  const ns = document.getElementById('gr-ns').value.trim() || pkg;
+  const min = parseInt(document.getElementById('gr-min').value) || 21;
+  const target = parseInt(document.getElementById('gr-target').value) || 34;
+  const compile = parseInt(document.getElementById('gr-compile').value) || 34;
+  const vcode = parseInt(document.getElementById('gr-vcode').value) || 1;
+  const vname = document.getElementById('gr-vname').value.trim() || '1.0.0';
+  const minEn = document.getElementById('gr-min-en').checked;
+  const shrink = document.getElementById('gr-shrink').checked;
+  const vb = document.getElementById('gr-vb').checked;
+
+  return `plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace '${ns}'
+    compileSdk ${compile}
+
+    defaultConfig {
+        applicationId "${pkg}"
+        minSdk ${min}
+        targetSdk ${target}
+        versionCode ${vcode}
+        versionName "${vname}"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled ${minEn}
+            shrinkResources ${shrink}
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = '17' }
+    ${vb ? 'buildFeatures { viewBinding true }' : ''}
+}
+
+dependencies {
+    implementation 'androidx.core:core-ktx:1.13.1'
+    implementation 'androidx.appcompat:appcompat:1.7.0'
+    implementation 'com.google.android.material:material:1.12.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+}`;
+}
+document.getElementById('btn-gr-gen').addEventListener('click', () => {
+  document.getElementById('gr-out').textContent = buildGradle();
+  showStatus('st-gr', 'success', 'build.gradle berhasil dibuat.');
+});
+document.getElementById('gr-copy').addEventListener('click', () => copyToClipboard(document.getElementById('gr-out').textContent, 'st-gr'));
+document.getElementById('gr-dl').addEventListener('click', () => downloadText(document.getElementById('gr-out').textContent || buildGradle(), 'build.gradle', 'text/plain'));
+
+// ─── HTML/URL TO APK ───────────────────────────────────────
+let h2aContent = '';
+let currentBuildId = null;
+let statusCheckInterval = null;
+
+document.getElementById('h2a-type').addEventListener('change', (e) => {
+  const isUrl = e.target.value === 'url';
+  const isZip = e.target.value === 'zip';
+  document.getElementById('h2a-input-field').innerHTML = isUrl
+    ? '<label>Website URL</label><input type="text" class="form-control" id="h2a-input" placeholder="https://example.com" />'
+    : '<label>File HTML/ZIP</label><div id="h2a-file-input"></div>';
+  document.getElementById('h2a-file-zone').style.display = isUrl ? 'none' : 'block';
+  if (!isUrl) {
+    setupDropzone('dz-html', 'file-html', files => {
+      const f = files[0];
+      const isHtml = f.name.match(/\.(html|htm)$/i);
+      const isZipFile = f.name.match(/\.zip$/i);
+      if (!isHtml && !isZipFile) {
+        showStatus('st-h2a', 'error', 'File harus HTML (.html/.htm) atau ZIP (.zip).');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        h2aContent = e.target.result;
+        showStatus('st-h2a', 'success', `File loaded: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`);
+      };
+      reader.readAsDataURL(f);
+    });
+  }
+});
+
+document.getElementById('btn-h2a-gen').addEventListener('click', async () => {
+  const type = document.getElementById('h2a-type').value;
+  const packageName = document.getElementById('h2a-pkg').value.trim();
+  const appName = document.getElementById('h2a-appname').value.trim();
+  const versionCode = document.getElementById('h2a-vcode').value;
+  const versionName = document.getElementById('h2a-vname').value.trim();
+
+  // Validation
+  if (!packageName || !appName) {
+    showStatus('st-h2a', 'error', 'Package name dan app name harus diisi.');
+    return;
+  }
+
+  if (type === 'url') {
+    const url = document.getElementById('h2a-input').value.trim();
+    if (!url.match(/^https?:\/\//)) {
+      showStatus('st-h2a', 'error', 'URL harus dimulai dengan http:// atau https://');
+      return;
+    }
+    h2aContent = url;
+  } else {
+    if (!h2aContent) {
+      showStatus('st-h2a', 'error', 'Pilih file HTML atau ZIP terlebih dahulu.');
+      return;
+    }
+  }
+
+  // Show progress
+  document.getElementById('build-progress').style.display = 'block';
+  document.getElementById('build-result').style.display = 'none';
+  document.getElementById('btn-h2a-gen').disabled = true;
+  document.getElementById('btn-h2a-gen').textContent = '🚀 Building APK...';
+
+  try {
+    // Trigger build
+    const response = await fetch('/api/trigger-build', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        type,
+        content: h2aContent,
+        packageName,
+        appName,
+        versionCode,
+        versionName
+      })
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to trigger build');
+    }
+
+    currentBuildId = result.buildId;
+    showStatus('st-h2a', 'success', 'Build started! Monitoring progress...');
+
+    // Start polling for status
+    startStatusPolling();
+
+  } catch (error) {
+    console.error('Build trigger error:', error);
+    showStatus('st-h2a', 'error', `Build failed: ${error.message}`);
+    resetBuildUI();
+  }
+});
+
+function startStatusPolling() {
+  let pollCount = 0;
+  const maxPolls = 120; // 10 minutes max (5 second intervals)
+
+  statusCheckInterval = setInterval(async () => {
+    try {
+      pollCount++;
+      const progress = Math.min((pollCount / maxPolls) * 100, 90); // Max 90% until complete
+      document.getElementById('progress-fill').style.width = `${progress}%`;
+
+      const response = await fetch(`/api/build-status?buildId=${currentBuildId}`);
+      const status = await response.json();
+
+      document.getElementById('build-status').textContent = getStatusMessage(status.status);
+
+      if (status.status === 'completed') {
+        clearInterval(statusCheckInterval);
+        showBuildResult(status);
+      } else if (status.status === 'failed') {
+        clearInterval(statusCheckInterval);
+        showStatus('st-h2a', 'error', `Build failed: ${status.error_message || 'Unknown error'}`);
+        resetBuildUI();
+      } else if (pollCount >= maxPolls) {
+        clearInterval(statusCheckInterval);
+        showStatus('st-h2a', 'error', 'Build timeout. Please try again.');
+        resetBuildUI();
+      }
+    } catch (error) {
+      console.error('Status check error:', error);
+    }
+  }, 5000); // Check every 5 seconds
+}
+
+function getStatusMessage(status) {
+  switch (status) {
+    case 'queued': return '⏳ Build queued...';
+    case 'building': return '🔨 Building APK...';
+    case 'signing': return '✍️ Signing APK...';
+    case 'uploading': return '📤 Uploading APK...';
+    case 'completed': return '✅ Build completed!';
+    case 'failed': return '❌ Build failed';
+    default: return `🔄 ${status}...`;
+  }
+}
+
+function showBuildResult(status) {
+  document.getElementById('build-progress').style.display = 'none';
+  document.getElementById('build-result').style.display = 'block';
+  document.getElementById('progress-fill').style.width = '100%';
+
+  const sizeMB = status.apk_size ? (status.apk_size / 1024 / 1024).toFixed(1) : 'Unknown';
+  document.getElementById('result-status').textContent = `APK berhasil dibuat! Ukuran: ${sizeMB} MB`;
+
+  document.getElementById('btn-download-apk').onclick = () => {
+    window.open(status.apk_url, '_blank');
+  };
+
+  resetBuildUI();
+}
+
+function resetBuildUI() {
+  document.getElementById('btn-h2a-gen').disabled = false;
+  document.getElementById('btn-h2a-gen').textContent = '🚀 Build APK (5-10 menit)';
+  if (statusCheckInterval) {
+    clearInterval(statusCheckInterval);
+    statusCheckInterval = null;
+  }
+}</script>
+
+</body>
+</html>

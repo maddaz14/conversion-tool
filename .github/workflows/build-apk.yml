@@ -1,0 +1,118 @@
+name: Build APK from HTML/URL
+
+on:
+  repository_dispatch:
+    types: [build-apk]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4.7.0
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3.2.1
+
+      - name: Install Cordova
+        run: npm install -g cordova@12
+
+      - name: Update status to building
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          curl -s -X PATCH "$SUPABASE_URL/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"status":"building","updated_at":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'
+
+      - name: Create Cordova project
+        run: |
+          PKG="${{ github.event.client_payload.package_name }}"
+          APP="${{ github.event.client_payload.app_name }}"
+          cordova create build-output "$PKG" "$APP"
+          cd build-output
+          cordova platform add android
+          echo "sdk.dir=$ANDROID_HOME" > platforms/android/local.properties
+          ls -la platforms/android/
+
+      - name: Add content based on type
+        run: |
+          TYPE="${{ github.event.client_payload.type }}"
+          CONTENT="${{ github.event.client_payload.content }}"
+          WWW="build-output/www"
+          rm -f "$WWW/index.html"
+          if [ "$TYPE" = "url" ]; then
+            printf '%s%s%s' '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0}body,html{height:100%}iframe{width:100%;height:100%;border:none;display:block}</style></head><body><iframe src="' "$CONTENT" '"></iframe></body></html>' > "$WWW/index.html"
+          elif [ "$TYPE" = "html" ]; then
+            printf '%s' "$CONTENT" | base64 -d > "$WWW/index.html"
+          fi
+
+      - name: Configure Cordova project
+        run: |
+          cd build-output
+          VNAME="${{ github.event.client_payload.version_name }}"
+          sed -i "s|version=\"1.0.0\"|version=\"$VNAME\"|" config.xml
+          sed -i 's|</widget>|    <access origin="*" />\n    <allow-navigation href="*" />\n</widget>|' config.xml
+
+      - name: Build APK
+        run: |
+          cd build-output
+          cordova build android --debug
+
+      - name: Find APK
+        id: apk-info
+        run: |
+          APK=$(find build-output/platforms/android -name "*.apk" | head -1)
+          echo "path=$APK" >> $GITHUB_OUTPUT
+          echo "size=$(stat -c%s "$APK")" >> $GITHUB_OUTPUT
+
+      - name: Upload APK to Supabase Storage
+        id: upload
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          BUILD_ID="${{ github.event.client_payload.build_id }}"
+          APK="${{ steps.apk-info.outputs.path }}"
+          curl -s -X POST "$SUPABASE_URL/storage/v1/object/apk-builds/$BUILD_ID.apk" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
+            -H "Content-Type: application/vnd.android.package-archive" \
+            --data-binary @"$APK"
+          echo "url=$SUPABASE_URL/storage/v1/object/public/apk-builds/$BUILD_ID.apk" >> $GITHUB_OUTPUT
+
+      - name: Update build status to completed
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          APK_URL="${{ steps.upload.outputs.url }}"
+          APK_SIZE="${{ steps.apk-info.outputs.size }}"
+          curl -s -X PATCH "$SUPABASE_URL/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\"status\":\"completed\",\"apk_url\":\"$APK_URL\",\"apk_size\":$APK_SIZE,\"updated_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+
+      - name: Update build status to failed on error
+        if: failure()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          curl -s -X PATCH "$SUPABASE_URL/rest/v1/apk_builds?id=eq.${{ github.event.client_payload.build_id }}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"status":"failed","error_message":"Build gagal di GitHub Actions.","updated_at":"'$(date -u +%Y-%m-%dT%H:%M:%SZ)'"}'

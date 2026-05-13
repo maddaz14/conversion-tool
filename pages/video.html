@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Video Tools — Gondrong STIES</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.js"></script>
+  <style>
+    video { max-width: 100%; border-radius: 12px; background: #000; margin-top: 12px; }
+    .video-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin: 14px 0; }
+    .video-meta .meta-item { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; }
+    .video-meta .meta-label { color: var(--text-muted); font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; }
+    .video-meta .meta-value { color: var(--text-main); font-weight: 700; font-size: 1rem; margin-top: 4px; font-family: var(--font-mono); word-break: break-word; }
+    .progress { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 99px; height: 10px; overflow: hidden; margin: 10px 0; display: none; }
+    .progress.show { display: block; }
+    .progress-fill { background: linear-gradient(90deg, #06b6d4, #6366f1); height: 100%; width: 0; transition: width 0.2s; }
+    .frame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; margin-top: 12px; }
+    .frame-grid img { width: 100%; border-radius: 8px; border: 1px solid var(--border-color); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div id="hdr"></div>
+
+  <section class="hero-page">
+    <h1>🎬 <span class="highlight">Video Tools</span></h1>
+    <p>Inspeksi & utilitas video langsung di browser: info, thumbnail, frame extractor, video-to-GIF, trim, dan extract audio. Diproses dengan HTML5 Video + Canvas + MediaRecorder.</p>
+  </section>
+
+  <div class="tool-layout">
+    <aside class="tool-sidebar">
+      <h4>Pilih Tool</h4>
+      <div class="tool-nav">
+        <button data-tool="info"><span class="nav-emoji">🔬</span> Video Info</button>
+        <button data-tool="thumb"><span class="nav-emoji">📸</span> Thumbnail</button>
+        <button data-tool="frames"><span class="nav-emoji">🎞️</span> Frame Extractor</button>
+        <button data-tool="gif"><span class="nav-emoji">🌀</span> Video → GIF</button>
+        <button data-tool="trim"><span class="nav-emoji">✂️</span> Trim</button>
+        <button data-tool="audio"><span class="nav-emoji">🔊</span> Extract Audio</button>
+      </div>
+    </aside>
+
+    <div class="tool-content">
+
+      <!-- INFO -->
+      <div class="tool-panel" id="panel-info">
+        <h2>🔬 Video Inspector</h2>
+        <p class="panel-desc">Lihat metadata file: durasi, resolusi, aspek rasio, dan estimasi bitrate.</p>
+        <div class="dropzone" id="dz-vinfo">
+          <input type="file" id="file-vinfo" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>MP4, WebM, MOV, MKV (sesuai dukungan browser)</p>
+        </div>
+        <video id="v-info" controls style="display:none"></video>
+        <div class="video-meta" id="meta-vinfo"></div>
+        <div class="status-alert" id="st-vinfo"></div>
+      </div>
+
+      <!-- THUMBNAIL -->
+      <div class="tool-panel" id="panel-thumb">
+        <h2>📸 Thumbnail Extractor</h2>
+        <p class="panel-desc">Ambil poster image dari video pada timestamp tertentu, simpan sebagai PNG/JPG.</p>
+        <div class="dropzone" id="dz-thumb">
+          <input type="file" id="file-thumb" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>Max ~500MB</p>
+        </div>
+        <video id="v-thumb" controls style="display:none"></video>
+        <div class="field-row-3">
+          <div class="field"><label>Waktu (detik)</label><input type="number" class="form-control" id="th-time" value="1" step="0.1" min="0"></div>
+          <div class="field">
+            <label>Format</label>
+            <select class="form-control" id="th-fmt">
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+              <option value="webp">WEBP</option>
+            </select>
+          </div>
+          <div class="field"><label>Quality (JPG/WEBP)</label><input type="range" id="th-q" min="0.1" max="1" step="0.05" value="0.92"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-thumb" disabled>Ambil Thumbnail</button>
+        <canvas id="canvas-thumb" style="display:none"></canvas>
+        <div class="status-alert" id="st-thumb"></div>
+      </div>
+
+      <!-- FRAMES -->
+      <div class="tool-panel" id="panel-frames">
+        <h2>🎞️ Frame Extractor</h2>
+        <p class="panel-desc">Ekstrak banyak frame sekaligus pada interval tertentu, hasil dibungkus ZIP.</p>
+        <div class="dropzone" id="dz-frames">
+          <input type="file" id="file-frames" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>Disarankan video pendek (< 60 detik)</p>
+        </div>
+        <video id="v-frames" controls style="display:none"></video>
+        <div class="field-row-3">
+          <div class="field"><label>Mulai (s)</label><input type="number" class="form-control" id="fr-start" value="0" step="0.1" min="0"></div>
+          <div class="field"><label>Selesai (s)</label><input type="number" class="form-control" id="fr-end" value="3" step="0.1" min="0"></div>
+          <div class="field"><label>Interval (s)</label><input type="number" class="form-control" id="fr-step" value="0.5" step="0.05" min="0.05"></div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Format</label>
+            <select class="form-control" id="fr-fmt">
+              <option value="png">PNG</option>
+              <option value="jpg">JPG</option>
+            </select>
+          </div>
+          <div class="field"><label>Max frame</label><input type="number" class="form-control" id="fr-max" value="60" min="1" max="500"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-frames" disabled>Ekstrak Frame & Unduh ZIP</button>
+        <div class="progress" id="prg-frames"><div class="progress-fill" id="prg-frames-fill"></div></div>
+        <div class="frame-grid" id="grid-frames"></div>
+        <div class="status-alert" id="st-frames"></div>
+      </div>
+
+      <!-- GIF -->
+      <div class="tool-panel" id="panel-gif">
+        <h2>🌀 Video → GIF</h2>
+        <p class="panel-desc">Konversi segmen video menjadi animated GIF. Disarankan segmen pendek (< 10s) agar tidak terlalu besar.</p>
+        <div class="dropzone" id="dz-gif">
+          <input type="file" id="file-gif" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>Max ~200MB (browser-bound)</p>
+        </div>
+        <video id="v-gif" controls style="display:none"></video>
+        <div class="field-row-3">
+          <div class="field"><label>Mulai (s)</label><input type="number" class="form-control" id="g-start" value="0" step="0.1" min="0"></div>
+          <div class="field"><label>Durasi (s)</label><input type="number" class="form-control" id="g-dur" value="3" step="0.1" min="0.5"></div>
+          <div class="field"><label>FPS</label><input type="number" class="form-control" id="g-fps" value="10" min="1" max="30"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Lebar (px)</label><input type="number" class="form-control" id="g-w" value="480" min="64" max="1920"></div>
+          <div class="field"><label>Quality (10 = best, 30 = fastest)</label><input type="number" class="form-control" id="g-q" value="10" min="1" max="30"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-gif" disabled>Generate GIF</button>
+        <div class="progress" id="prg-gif"><div class="progress-fill" id="prg-gif-fill"></div></div>
+        <img id="gif-preview" style="display:none;max-width:100%;border-radius:10px;margin-top:14px;">
+        <div class="status-alert" id="st-gif"></div>
+      </div>
+
+      <!-- TRIM -->
+      <div class="tool-panel" id="panel-trim">
+        <h2>✂️ Video Trim (Re-record)</h2>
+        <p class="panel-desc">Trim segmen tertentu dari video & re-encode ke WebM via MediaRecorder. Audio asli ikut dipertahankan.</p>
+        <div class="dropzone" id="dz-vtrim">
+          <input type="file" id="file-vtrim" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>Max ~200MB</p>
+        </div>
+        <video id="v-trim" controls style="display:none"></video>
+        <div class="field-row">
+          <div class="field"><label>Mulai (s)</label><input type="number" class="form-control" id="vt-start" value="0" step="0.1" min="0"></div>
+          <div class="field"><label>Selesai (s)</label><input type="number" class="form-control" id="vt-end" value="3" step="0.1" min="0"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-vtrim" disabled>Trim & Unduh WebM</button>
+        <div class="progress" id="prg-vtrim"><div class="progress-fill" id="prg-vtrim-fill"></div></div>
+        <div class="status-alert" id="st-vtrim"></div>
+      </div>
+
+      <!-- EXTRACT AUDIO -->
+      <div class="tool-panel" id="panel-audio">
+        <h2>🔊 Extract Audio (WebM/Opus)</h2>
+        <p class="panel-desc">Pisahkan track audio dari video sebagai file WebM (Opus). Cocok untuk MP3 ringkas walau ekstensi berbeda.</p>
+        <div class="dropzone" id="dz-va">
+          <input type="file" id="file-va" accept="video/*" />
+          <div class="drop-icon">🎬</div>
+          <h3>Pilih file video</h3>
+          <p>Hanya video dengan track audio</p>
+        </div>
+        <video id="v-va" controls style="display:none"></video>
+        <label class="checkbox-row"><input type="checkbox" id="va-full" checked /><span>Ekstrak seluruh durasi</span></label>
+        <div class="field-row" id="va-range" style="display:none">
+          <div class="field"><label>Mulai (s)</label><input type="number" class="form-control" id="va-start" value="0" step="0.1" min="0"></div>
+          <div class="field"><label>Selesai (s)</label><input type="number" class="form-control" id="va-end" value="10" step="0.1" min="0"></div>
+        </div>
+        <button class="btn btn-primary btn-block" id="btn-va" disabled>Ekstrak Audio & Unduh</button>
+        <div class="progress" id="prg-va"><div class="progress-fill" id="prg-va-fill"></div></div>
+        <div class="status-alert" id="st-va"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="ftr"></div>
+</div>
+
+<script src="../assets/common.js"></script>
+<script>
+injectHeader('hdr', { badge: '🎬 Video Tools' });
+injectFooter('ftr');
+setupToolTabs('.tool-nav button', '.tool-panel', 'info');
+
+function setProgress(id, pct) {
+  const wrap = document.getElementById('prg-' + id);
+  const fill = document.getElementById('prg-' + id + '-fill');
+  if (wrap) wrap.classList.add('show');
+  if (fill) fill.style.width = Math.round(pct) + '%';
+}
+function hideProgress(id) {
+  const wrap = document.getElementById('prg-' + id);
+  if (wrap) wrap.classList.remove('show');
+}
+function pillMeta(label, val) { return `<div class="meta-item"><div class="meta-label">${label}</div><div class="meta-value">${val}</div></div>`; }
+function fmtTime(s) { const m = Math.floor(s / 60); const sec = Math.floor(s % 60); return `${m}:${String(sec).padStart(2, '0')}`; }
+
+function loadVideo(file, vid) {
+  return new Promise((resolve, reject) => {
+    vid.src = URL.createObjectURL(file);
+    vid.style.display = '';
+    vid.onloadedmetadata = () => resolve(vid);
+    vid.onerror = () => reject(new Error('Video gagal dimuat.'));
+  });
+}
+function seekVideo(vid, t) {
+  return new Promise((resolve) => {
+    const onSeek = () => { vid.removeEventListener('seeked', onSeek); resolve(); };
+    vid.addEventListener('seeked', onSeek);
+    vid.currentTime = Math.min(t, vid.duration);
+  });
+}
+
+// ─── INFO ──────────────────────────────────────────────────
+setupDropzone('dz-vinfo', 'file-vinfo', async files => {
+  const f = files[0];
+  try {
+    const v = await loadVideo(f, document.getElementById('v-info'));
+    const bitrate = Math.round((f.size * 8) / v.duration / 1000);
+    document.getElementById('meta-vinfo').innerHTML = [
+      pillMeta('Nama', f.name),
+      pillMeta('Tipe', f.type || '—'),
+      pillMeta('Ukuran', formatBytes(f.size)),
+      pillMeta('Durasi', fmtTime(v.duration) + ` (${v.duration.toFixed(2)}s)`),
+      pillMeta('Resolusi', v.videoWidth + ' × ' + v.videoHeight),
+      pillMeta('Aspect Ratio', (v.videoWidth / v.videoHeight).toFixed(3)),
+      pillMeta('Bitrate (est.)', bitrate + ' kbps'),
+      pillMeta('Audio Track', 'Cek di player')
+    ].join('');
+    showStatus('st-vinfo', 'success', 'Video berhasil dianalisis.');
+  } catch (err) { showStatus('st-vinfo', 'error', err.message); }
+});
+
+// ─── THUMBNAIL ─────────────────────────────────────────────
+let thumbFile = null;
+setupDropzone('dz-thumb', 'file-thumb', async files => {
+  thumbFile = files[0];
+  await loadVideo(thumbFile, document.getElementById('v-thumb'));
+  document.getElementById('btn-thumb').disabled = false;
+  showStatus('st-thumb', 'success', 'Siap. Atur waktu lalu klik tombol.');
+});
+document.getElementById('btn-thumb').addEventListener('click', async () => {
+  if (!thumbFile) return;
+  const v = document.getElementById('v-thumb');
+  const t = parseFloat(document.getElementById('th-time').value) || 0;
+  const fmt = document.getElementById('th-fmt').value;
+  const q = parseFloat(document.getElementById('th-q').value) || 0.92;
+  await seekVideo(v, t);
+  const c = document.getElementById('canvas-thumb');
+  c.width = v.videoWidth; c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v, 0, 0);
+  const mime = fmt === 'png' ? 'image/png' : fmt === 'webp' ? 'image/webp' : 'image/jpeg';
+  c.toBlob(b => {
+    downloadBlob(b, `thumbnail_${t}s.${fmt}`);
+    showStatus('st-thumb', 'success', 'Thumbnail siap diunduh.');
+  }, mime, q);
+});
+
+// ─── FRAMES ────────────────────────────────────────────────
+let framesFile = null;
+setupDropzone('dz-frames', 'file-frames', async files => {
+  framesFile = files[0];
+  const v = await loadVideo(framesFile, document.getElementById('v-frames'));
+  document.getElementById('fr-end').value = Math.min(3, v.duration).toFixed(2);
+  document.getElementById('btn-frames').disabled = false;
+});
+document.getElementById('btn-frames').addEventListener('click', async () => {
+  if (!framesFile) return;
+  const v = document.getElementById('v-frames');
+  const start = parseFloat(document.getElementById('fr-start').value) || 0;
+  const end = Math.min(v.duration, parseFloat(document.getElementById('fr-end').value) || v.duration);
+  const step = parseFloat(document.getElementById('fr-step').value) || 0.5;
+  const fmt = document.getElementById('fr-fmt').value;
+  const max = parseInt(document.getElementById('fr-max').value) || 60;
+  const total = Math.min(max, Math.ceil((end - start) / step));
+  const c = document.createElement('canvas'); c.width = v.videoWidth; c.height = v.videoHeight;
+  const ctx2 = c.getContext('2d');
+  const grid = document.getElementById('grid-frames'); grid.innerHTML = '';
+  const zip = new JSZip();
+  const mime = fmt === 'png' ? 'image/png' : 'image/jpeg';
+  for (let i = 0; i < total; i++) {
+    const t = start + i * step;
+    await seekVideo(v, t);
+    ctx2.drawImage(v, 0, 0);
+    const blob = await new Promise(res => c.toBlob(res, mime, 0.92));
+    const name = `frame_${String(i).padStart(4, '0')}_${t.toFixed(2)}s.${fmt}`;
+    zip.file(name, blob);
+    const url = URL.createObjectURL(blob);
+    const img = document.createElement('img'); img.src = url; img.title = name;
+    if (grid.children.length < 24) grid.appendChild(img);
+    setProgress('frames', (i + 1) / total * 100);
+  }
+  const out = await zip.generateAsync({ type: 'blob' });
+  downloadBlob(out, 'frames.zip');
+  hideProgress('frames');
+  showStatus('st-frames', 'success', `${total} frame diekstrak.`);
+});
+
+// ─── GIF ───────────────────────────────────────────────────
+let gifFile = null;
+setupDropzone('dz-gif', 'file-gif', async files => {
+  gifFile = files[0];
+  const v = await loadVideo(gifFile, document.getElementById('v-gif'));
+  document.getElementById('g-dur').value = Math.min(3, v.duration).toFixed(2);
+  document.getElementById('btn-gif').disabled = false;
+});
+document.getElementById('btn-gif').addEventListener('click', async () => {
+  if (!gifFile) return;
+  if (typeof GIF === 'undefined') return showStatus('st-gif', 'error', 'gif.js library belum dimuat. Cek koneksi internet.');
+  const v = document.getElementById('v-gif');
+  const start = parseFloat(document.getElementById('g-start').value) || 0;
+  const dur = parseFloat(document.getElementById('g-dur').value) || 3;
+  const fps = parseInt(document.getElementById('g-fps').value) || 10;
+  const w = parseInt(document.getElementById('g-w').value) || 480;
+  const quality = parseInt(document.getElementById('g-q').value) || 10;
+  const h = Math.round(v.videoHeight * (w / v.videoWidth));
+
+  const gif = new GIF({
+    workers: 2, quality, width: w, height: h, workerScript: 'https://cdn.jsdelivr.net/npm/gif.js.optimized@1.0.1/dist/gif.worker.js'
+  });
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx2 = c.getContext('2d');
+  const total = Math.floor(dur * fps);
+  for (let i = 0; i < total; i++) {
+    await seekVideo(v, start + i / fps);
+    ctx2.drawImage(v, 0, 0, w, h);
+    gif.addFrame(ctx2, { copy: true, delay: 1000 / fps });
+    setProgress('gif', (i + 1) / total * 50);
+  }
+  gif.on('progress', p => setProgress('gif', 50 + p * 50));
+  gif.on('finished', blob => {
+    const url = URL.createObjectURL(blob);
+    document.getElementById('gif-preview').src = url;
+    document.getElementById('gif-preview').style.display = '';
+    downloadBlob(blob, 'output.gif');
+    hideProgress('gif');
+    showStatus('st-gif', 'success', `GIF jadi (${formatBytes(blob.size)}).`);
+  });
+  gif.render();
+});
+
+// ─── TRIM ──────────────────────────────────────────────────
+let trimFile = null;
+setupDropzone('dz-vtrim', 'file-vtrim', async files => {
+  trimFile = files[0];
+  const v = await loadVideo(trimFile, document.getElementById('v-trim'));
+  document.getElementById('vt-end').value = Math.min(3, v.duration).toFixed(2);
+  document.getElementById('btn-vtrim').disabled = false;
+});
+document.getElementById('btn-vtrim').addEventListener('click', async () => {
+  if (!trimFile) return;
+  const v = document.getElementById('v-trim');
+  const start = parseFloat(document.getElementById('vt-start').value) || 0;
+  const end = Math.min(v.duration, parseFloat(document.getElementById('vt-end').value) || v.duration);
+  if (end <= start) return showStatus('st-vtrim', 'error', 'Waktu akhir harus > awal.');
+
+  if (typeof v.captureStream !== 'function' && typeof v.mozCaptureStream !== 'function') {
+    return showStatus('st-vtrim', 'error', 'Browser tidak mendukung captureStream().');
+  }
+  const stream = (v.captureStream || v.mozCaptureStream).call(v);
+  const supported = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  if (!supported) return showStatus('st-vtrim', 'error', 'MediaRecorder tidak mendukung webm.');
+  const rec = new MediaRecorder(stream, { mimeType: supported });
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = () => {
+    const blob = new Blob(chunks, { type: 'video/webm' });
+    downloadBlob(blob, `trim_${start.toFixed(1)}-${end.toFixed(1)}s.webm`);
+    hideProgress('vtrim');
+    showStatus('st-vtrim', 'success', `Trim selesai (${formatBytes(blob.size)}).`);
+  };
+  setProgress('vtrim', 5);
+  await seekVideo(v, start);
+  v.play(); rec.start();
+  const total = end - start;
+  const tick = setInterval(() => setProgress('vtrim', 5 + ((v.currentTime - start) / total) * 90), 200);
+  const onTime = () => {
+    if (v.currentTime >= end) {
+      v.pause(); rec.stop(); clearInterval(tick); v.removeEventListener('timeupdate', onTime);
+    }
+  };
+  v.addEventListener('timeupdate', onTime);
+});
+
+// ─── EXTRACT AUDIO ─────────────────────────────────────────
+let vaFile = null;
+document.getElementById('va-full').addEventListener('change', e => {
+  document.getElementById('va-range').style.display = e.target.checked ? 'none' : '';
+});
+setupDropzone('dz-va', 'file-va', async files => {
+  vaFile = files[0];
+  const v = await loadVideo(vaFile, document.getElementById('v-va'));
+  document.getElementById('va-end').value = v.duration.toFixed(2);
+  document.getElementById('btn-va').disabled = false;
+});
+document.getElementById('btn-va').addEventListener('click', async () => {
+  if (!vaFile) return;
+  const v = document.getElementById('v-va');
+  if (typeof v.captureStream !== 'function' && typeof v.mozCaptureStream !== 'function') {
+    return showStatus('st-va', 'error', 'Browser tidak mendukung captureStream().');
+  }
+  const full = document.getElementById('va-full').checked;
+  const start = full ? 0 : parseFloat(document.getElementById('va-start').value) || 0;
+  const end = full ? v.duration : Math.min(v.duration, parseFloat(document.getElementById('va-end').value) || v.duration);
+
+  const stream = (v.captureStream || v.mozCaptureStream).call(v);
+  const audioTracks = stream.getAudioTracks();
+  if (!audioTracks.length) return showStatus('st-va', 'error', 'Video tidak memiliki track audio.');
+  const audioStream = new MediaStream(audioTracks);
+  const supported = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported(m));
+  if (!supported) return showStatus('st-va', 'error', 'MediaRecorder audio tidak didukung.');
+  const rec = new MediaRecorder(audioStream, { mimeType: supported });
+  const chunks = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = () => {
+    const blob = new Blob(chunks, { type: supported });
+    const ext = supported.includes('ogg') ? 'ogg' : 'webm';
+    downloadBlob(blob, `audio_${start.toFixed(1)}-${end.toFixed(1)}s.${ext}`);
+    hideProgress('va');
+    showStatus('st-va', 'success', `Audio berhasil diekstrak (${formatBytes(blob.size)}).`);
+  };
+  setProgress('va', 5);
+  await seekVideo(v, start);
+  v.play(); rec.start();
+  const total = end - start;
+  const tick = setInterval(() => setProgress('va', 5 + ((v.currentTime - start) / total) * 90), 200);
+  const onTime = () => {
+    if (v.currentTime >= end) {
+      v.pause(); rec.stop(); clearInterval(tick); v.removeEventListener('timeupdate', onTime);
+    }
+  };
+  v.addEventListener('timeupdate', onTime);
+});
+</script>
+
+</body>
+</html>
