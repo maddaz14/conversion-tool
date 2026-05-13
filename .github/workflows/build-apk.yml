@@ -81,13 +81,13 @@ jobs:
         id: upload
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
         run: |
           BUILD_ID="${{ github.event.client_payload.build_id }}"
           APK="${{ steps.apk-info.outputs.path }}"
           curl -s -X POST "$SUPABASE_URL/storage/v1/object/apk-builds/$BUILD_ID.apk" \
-            -H "apikey: $SUPABASE_ANON_KEY" \
-            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "apikey: $SUPABASE_SERVICE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" \
             -H "Content-Type: application/vnd.android.package-archive" \
             --data-binary @"$APK"
           echo "url=$SUPABASE_URL/storage/v1/object/public/apk-builds/$BUILD_ID.apk" >> $GITHUB_OUTPUT
