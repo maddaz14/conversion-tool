@@ -11,16 +11,16 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v4.7.0
         with:
           java-version: '17'
           distribution: 'temurin'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3  # ← ganti pakai action resmi
+        uses: android-actions/setup-android@v3.2.1
 
       - name: Install Cordova
         run: npm install -g cordova@12
@@ -42,8 +42,9 @@ jobs:
           APP="${{ github.event.client_payload.app_name }}"
           cordova create build-output "$PKG" "$APP"
           cd build-output
-          cordova platform add android  # ← hapus @12, biarkan auto pilih versi
+          cordova platform add android
           echo "sdk.dir=$ANDROID_HOME" > platforms/android/local.properties
+          ls -la platforms/android/
 
       - name: Add content based on type
         run: |
@@ -66,10 +67,8 @@ jobs:
 
       - name: Build APK
         run: |
-          cd build-output/platforms/android
-          echo "sdk.dir=$ANDROID_HOME" > local.properties
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          cd build-output
+          cordova build android --debug
 
       - name: Find APK
         id: apk-info
